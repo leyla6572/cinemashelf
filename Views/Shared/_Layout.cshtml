@@ -12,7 +12,7 @@
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">cinemashelf</a>
+                <a class="navbar-brand fw-bold text-success" asp-area="" asp-controller="Home" asp-action="Index">cinemashelf</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -26,6 +26,33 @@
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
                     </ul>
+
+                    <form class="d-flex me-3" action="/Home/Search" method="get">
+                        <input class="form-control me-2 rounded-pill" type="search" name="query" placeholder="Film ara..." aria-label="Search" required>
+                        <button class="btn btn-outline-success rounded-pill" type="submit">Ara</button>
+                    </form>
+
+                    <ul class="navbar-nav d-flex flex-row align-items-center ms-auto mb-0 ps-0" style="list-style: none;">
+                        @if (User.Identity != null && User.Identity.IsAuthenticated)
+                        {
+                            <li class="nav-item me-3 d-flex align-items-center">
+                                <a class="nav-link text-primary fw-semibold p-0" asp-controller="Profile" asp-action="Index">👤 Profilim</a>
+                            </li>
+                            <li class="nav-item d-flex align-items-center">
+                                <a class="btn btn-sm btn-outline-danger rounded-pill px-3 d-flex align-items-center" style="height: 31px;" asp-controller="Account" asp-action="Logout">Çıkış Yap</a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item me-2">
+                                <a class="btn btn-sm btn-outline-secondary rounded-pill px-3" asp-controller="Account" asp-action="Login">Giriş Yap</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="btn btn-sm btn-success rounded-pill px-3" asp-controller="Account" asp-action="Register">Kayıt Ol</a>
+                            </li>
+                        }
+                    </ul>
+
                 </div>
             </div>
         </nav>
@@ -46,4 +73,4 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
-</html>
+</html>  

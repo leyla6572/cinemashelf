@@ -15,6 +15,7 @@ namespace CinemaShelf.Data
         public DbSet<Movie> Movies { get; set; }
         public DbSet<AppUser> AppUsers { get; set; }
         public DbSet<UserMovie> UserMovies { get; set; }
+        public DbSet<Follow> Follows { get; set; } // 🌟 YENİ: Takip tablomuz eklendi
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -35,6 +36,19 @@ namespace CinemaShelf.Data
             modelBuilder.Entity<UserMovie>()
                 .Property(um => um.Status)
                 .HasConversion<string>();
+
+            // 🌟 YENİ: Takip Sistemi (Follow) İçin İlişki Kuralları (Self-Join)
+            modelBuilder.Entity<Follow>()
+                .HasOne(f => f.Follower)
+                .WithMany()
+                .HasForeignKey(f => f.FollowerId)
+                .OnDelete(DeleteBehavior.Restrict); // SQL Server'da çakışan silme yollarını engeller
+
+            modelBuilder.Entity<Follow>()
+                .HasOne(f => f.Following)
+                .WithMany()
+                .HasForeignKey(f => f.FollowingId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

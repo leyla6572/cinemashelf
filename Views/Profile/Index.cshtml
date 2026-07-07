@@ -1,0 +1,70 @@
+﻿@model CinemaShelf.Models.AppUser
+
+@{
+    ViewData["Title"] = "Profilim - CinemaShelf";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-sm border-0 rounded-3 mb-4 bg-light">
+        <div class="card-body p-4 d-flex align-items-center">
+            <div class="me-4">
+                <img src="~/images/@Model.ProfilePicture" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'"
+                     class="rounded-circle img-thumbnail shadow-sm" style="width: 100px; height: 100px; object-fit: cover;">
+            </div>
+            <div>
+                <h2 class="fw-bold text-dark mb-1">@Model.Username</h2>
+                <p class="text-muted small mb-2">✉️ @Model.Email</p>
+                <p class="mb-0 text-secondary"><em>@(string.IsNullOrEmpty(Model.Bio) ? "Henüz bir biyografi eklenmemiş." : Model.Bio)</em></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row text-center mb-4">
+        <div class="col-6 col-md-3">
+            <div class="p-3 bg-white shadow-sm rounded-3 border">
+                <h4 class="fw-bold text-primary mb-1">@Model.UserMovies.Count</h4>
+                <span class="text-muted small">Kayıtlı Film</span>
+            </div>
+        </div>
+    </div>
+
+    <h3 class="fw-bold text-dark mb-3">📚 Benim Film Rafım</h3>
+
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+        @if (Model.UserMovies != null && Model.UserMovies.Any())
+        {
+            foreach (var userMovie in Model.UserMovies)
+            {
+                <div class="col">
+                    <div class="card h-100 shadow-sm border-0 rounded-3 overflow-hidden">
+                        <div class="position-relative">
+                            @if (!string.IsNullOrEmpty(userMovie.Movie.PosterPath))
+                            {
+                                <img src="https://image.tmdb.org/t/p/w500@(userMovie.Movie.PosterPath)" class="card-img-top" alt="@userMovie.Movie.Title" style="height: 320px; object-fit: cover;">
+                            }
+                            else
+                            {
+                                <div class="bg-secondary d-flex align-items-center justify-content-center text-white" style="height: 320px;">
+                                    <span>Afiş Yok</span>
+                                </div>
+                            }
+                            <span class="position-absolute top-0 end-0 bg-dark text-white small m-2 px-2 py-1 rounded opacity-75">
+                                🕒 @userMovie.AddedDate.ToString("dd.MM.yyyy")
+                            </span>
+                        </div>
+                        <div class="card-body bg-light text-center">
+                            <h6 class="fw-bold text-truncate mb-0" title="@userMovie.Movie.Title">@userMovie.Movie.Title</h6>
+                            <span class="badge bg-info text-dark mt-2">@userMovie.Status</span>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center py-5">
+                <p class="text-muted fs-5">Rafınızda henüz hiç film yok. Ana sayfadan filmleri rafa eklemeye başlayın! 🍿</p>
+            </div>
+        }
+    </div>
+</div>

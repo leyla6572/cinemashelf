@@ -1,12 +1,14 @@
 ﻿@model List<CinemaShelf.Models.TmdbMovieResult>
 
 @{
-    ViewData["Title"] = "Ana Sayfa - Popüler Filmler";
+    ViewData["Title"] = ViewData["SearchQuery"] + " Arama Sonuçları";
 }
 
 <div class="container mt-4">
     <div class="mb-4">
-        <h2 class="fw-bold text-dark">🍿 Popüler Filmler</h2>
+        <a href="/Home/Index" class="btn btn-sm btn-outline-secondary rounded-pill mb-2">⬅️ Ana Sayfaya Dön</a>
+        <h2 class="fw-bold text-dark">🔍 "@ViewData["SearchQuery"]" İçin Arama Sonuçları</h2>
+        <p class="text-muted">Toplam @(Model?.Count ?? 0) sonuç listelendi.</p>
     </div>
 
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
@@ -57,7 +59,8 @@
         else
         {
             <div class="col-12 text-center py-5">
-                <p class="text-muted fs-5">Şu anda listelenecek popüler film bulunamadı.</p>
+                <h4 class="text-muted">Aradığınız kriterlere uygun film bulunamadı. 😥</h4>
+                <p class="text-muted small">Farklı anahtar kelimelerle tekrar deneyebilirsiniz.</p>
             </div>
         }
     </div>
@@ -80,7 +83,7 @@
         const movieData = {
             TmdbId: parseInt(tmdbId),
             Title: title,
-            Overview: "", // Veri tabanını çok şişirmemek için özeti boş geçebiliriz, istersen ekleyebiliriz de
+            Overview: "",
             PosterPath: posterPath
         };
 

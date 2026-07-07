@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace CinemaShelf.Models
 {
@@ -7,16 +9,21 @@ namespace CinemaShelf.Models
         [Key]
         public int Id { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Kullanıcı adı zorunludur.")]
         [StringLength(50)]
         public string Username { get; set; } = string.Empty;
 
-        [Required]
-        [EmailAddress]
+        [Required(ErrorMessage = "E-posta adresi zorunludur.")]
+        [EmailAddress(ErrorMessage = "Geçersiz e-posta adresi.")]
         public string Email { get; set; } = string.Empty;
 
         [Required]
         public string PasswordHash { get; set; } = string.Empty; // Şifreyi güvenli tutmak için
+
+        // 🌟 SOSYAL PLATFORM İÇİN YENİ EKLENEN ALANLAR
+        public string? Bio { get; set; } // Kullanıcı biyografisi
+        public string? ProfilePicture { get; set; } = "default-profile.png"; // Varsayılan profil resmi
+        public DateTime CreatedDate { get; set; } = DateTime.Now;
 
         // İlişki: Bir kullanıcının rafında birçok film olabilir.
         public ICollection<UserMovie> UserMovies { get; set; } = new List<UserMovie>();
