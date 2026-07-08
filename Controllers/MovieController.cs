@@ -33,10 +33,13 @@ namespace CinemaShelf.Controllers
                 return NotFound("Film API'den yüklenemedi.");
             }
 
-            // 2. Şimdi bizim yerel veritabanımıza gidip, bu filme yapılmış yorumları çekiyoruz
+            
+            // 2. Şimdi bizim yerel veritabanımıza gidip, bu filme yapılmış yorumları VE BEĞENİLERİ çekiyoruz
             var localMovie = await _context.Movies
                 .Include(m => m.Reviews)
                     .ThenInclude(r => r.AppUser)
+                .Include(m => m.Reviews)
+                    .ThenInclude(r => r.ReviewLikes) // 🌟 YENİ: Yorumların beğenilerini de dahil ettik
                 .FirstOrDefaultAsync(m => m.TmdbId == id);
 
             // 3. Yorumları View'a güvenle taşımak için ViewBag kullanıyoruz
@@ -107,6 +110,61 @@ namespace CinemaShelf.Controllers
             {
                 return Json(new { success = false, message = "Hata: " + ex.Message });
             }
+        }
+        [HttpPost]
+        [Authorize] // Sadece giriş yapmış kullanıcılar beğenebilir
+        public async Task<IActionResult> ToggleLikeReview([FromBody] LikeInputModel input)
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdString, out int userId))
+            {
+                return Json(new { success = false, message = "Beğenmek için giriş yapmalısınız!" });
+            }
+
+            try
+            {
+                // 1. Daha önce bu kullanıcı bu yorumu beğenmiş mi diye bakıyoruz
+                var existingLike = await _context.ReviewLikes
+                    .FirstOrDefaultAsync(rl => rl.AppUserId == userId && rl.ReviewId == input.ReviewId);
+
+                bool isLiked;
+
+                if (existingLike != null)
+                {
+                    // 2. Eğer zaten beğendiyse: Beğeniyi kaldır (Sil)
+                    _context.ReviewLikes.Remove(existingLike);
+                    isLiked = false;
+                }
+                else
+                {
+                    // 3. Eğer henüz beğenmediyse: Yeni beğeni ekle
+                    var newLike = new ReviewLike
+                    {
+                        AppUserId = userId,
+                        ReviewId = input.ReviewId,
+                        LikedDate = DateTime.Now
+                    };
+                    _context.ReviewLikes.Add(newLike);
+                    isLiked = true;
+                }
+
+                await _context.SaveChangesAsync();
+
+                // 4. Güncel beğeni sayısını hesaplayıp arayüze geri gönderiyoruz
+                var currentLikeCount = await _context.ReviewLikes.CountAsync(rl => rl.ReviewId == input.ReviewId);
+
+                return Json(new { success = true, isLiked = isLiked, likeCount = currentLikeCount });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Hata oluştu: " + ex.Message });
+            }
+        }
+
+        // JS'den gelen ReviewId'yi yakalamak için küçük yardımcı model
+        public class LikeInputModel
+        {
+            public int ReviewId { get; set; }
         }
     }
 

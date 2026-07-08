@@ -24,5 +24,7 @@ namespace CinemaShelf.Models
         // Yorum hangi filme yapıldı? (Ortak Movies tablonuza bağlanıyor)
         public int MovieId { get; set; }
         public Movie? Movie { get; set; }
+
+        public List<ReviewLike> ReviewLikes { get; set; } = new();
     }
 }
