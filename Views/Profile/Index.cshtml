@@ -4,6 +4,7 @@
     ViewData["Title"] = Model.Username + " - Profil";
     int totalMovies = ViewBag.TotalMovies ?? 0;
     int watchlistCount = ViewBag.WatchlistCount ?? 0;
+    int reviewsCount = ViewBag.ReviewsCount ?? 0; // 🌟 Dinamik yorum sayısı
 }
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -36,8 +37,7 @@
                     <span class="text-muted small ms-1">İzlenecekler</span>
                 </div>
                 <div>
-                    <span class="fw-bold text-dark fs-5">0</span>
-                    <span class="text-muted small ms-1">Yorumlar</span>
+                    <span class="fw-bold text-dark fs-5">@reviewsCount</span> <span class="text-muted small ms-1">Yorumlar</span>
                 </div>
             </div>
         </div>
@@ -61,7 +61,7 @@
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews-content" type="button" role="tab">
-                Yorumlar (0)
+                Yorumlar (@reviewsCount)
             </button>
         </li>
     </ul>
@@ -152,9 +152,43 @@
         </div>
 
         <div class="tab-pane fade" id="reviews-content" role="tabpanel">
-            <div class="text-center py-5 text-muted">
-                <p class="mb-0"><i class="bi bi-chat-left-text fs-3 mb-2 d-block"></i> Henüz bir film yorumu veya inceleme bulunmuyor.</p>
-            </div>
+            @if (Model.Reviews != null && Model.Reviews.Any())
+            {
+                <div class="d-flex flex-column gap-3" style="max-width: 750px; margin: 0 auto;">
+                    @foreach (var review in Model.Reviews.OrderByDescending(r => r.CreatedDate))
+                    {
+                        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white border-start border-4 border-success">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div class="d-flex align-items-center gap-3">
+                                    @if (!string.IsNullOrEmpty(review.Movie?.PosterPath))
+                                    {
+                                        <img src="https://image.tmdb.org/t/p/w92@(review.Movie.PosterPath)" class="rounded-2 shadow-sm" style="width: 45px; height: 65px; object-fit: cover;">
+                                    }
+                                    <div>
+                                        <a href="/Movie/Details/@review.Movie?.TmdbId" class="text-decoration-none">
+                                            <h6 class="fw-bold text-dark mb-1 hover-success">@review.Movie?.Title</h6>
+                                        </a>
+                                        <small class="text-muted d-block" style="font-size: 0.75rem;">
+                                            <i class="bi bi-calendar3"></i> @review.CreatedDate.ToString("dd MMMM yyyy HH:mm")
+                                        </small>
+                                    </div>
+                                </div>
+                                <span class="badge bg-warning text-dark fw-bold px-2 py-1 rounded">⭐ @review.Rating / 10</span>
+                            </div>
+                            <p class="text-muted small mb-0 mt-2 card-text" style="white-space: pre-line; line-height: 1.5;">
+                                "@review.Content"
+                            </p>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5 text-muted">
+                    <p class="mb-0"><i class="bi bi-chat-left-text fs-3 mb-2 d-block"></i> Henüz bir film yorumu veya inceleme bulunmuyor.</p>
+                    <small class="text-muted">İzlediğiniz filmlere yorum yaparak profilinizi canlandırabilirsiniz! 🍿</small>
+                </div>
+            }
         </div>
 
     </div>
@@ -201,4 +235,10 @@
         .movie-shelf-card:hover {
             transform: translateY(-4px);
         }
+
+    /* Yorumlardaki Film İsmi Hover Efekti */
+    .hover-success:hover {
+        color: #198754 !important;
+        transition: color 0.2s ease;
+    }
 </style>

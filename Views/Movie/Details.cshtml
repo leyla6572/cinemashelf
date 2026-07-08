@@ -4,6 +4,8 @@
     ViewData["Title"] = Model.Title + " - Film Detayları";
 }
 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
 <div class="movie-backdrop" style="background-image: url('https://image.tmdb.org/t/p/original@(Model.Backdrop_Path)');">
     <div class="backdrop-overlay"></div>
 </div>
@@ -50,13 +52,82 @@
                 </p>
             </div>
 
-            <div class="d-flex gap-3">
+            <div class="d-flex gap-3 mb-5">
                 <button class="btn btn-success btn-lg rounded-pill px-5 fw-bold shadow"
                         onclick="addToShelf('@Model.Id', '@Model.Title.Replace("'", "\\'")', '@Model.Poster_Path')">
                     ➕ Rafa Ekle
                 </button>
                 <a href="javascript:history.back()" class="btn btn-outline-light btn-lg rounded-pill px-4">Geri Dön</a>
             </div>
+
+            <div class="mt-5 border-top border-secondary pt-4">
+                <h3 class="fw-bold text-white mb-4"><i class="bi bi-chat-left-text-fill text-success"></i> Filmi İncele & Yorumlar</h3>
+
+                <div class="card border-0 shadow-sm rounded-4 p-4 mb-5 bg-dark bg-opacity-70 text-white border border-secondary backdrop-blur">
+                    <h5 class="fw-bold text-white mb-3">Fikrini Paylaş</h5>
+
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold text-light small">Filme Puanın:</label>
+                            <select id="reviewRating" class="form-select bg-dark text-white rounded-pill border-secondary">
+                                <option value="10">⭐ 10 / 10 (Başyapıt)</option>
+                                <option value="9">⭐ 9 / 10 (Harika)</option>
+                                <option value="8">⭐ 8 / 10 (Çok İyi)</option>
+                                <option value="7">⭐ 7 / 10 (İyi)</option>
+                                <option value="6">⭐ 6 / 10 (Ortalama Üstü)</option>
+                                <option value="5">⭐ 5 / 10 (Ortalama)</option>
+                                <option value="4">⭐ 4 / 10 (Zayıf)</option>
+                                <option value="3">⭐ 3 / 10 (Kötü)</option>
+                                <option value="2">⭐ 2 / 10 (Çok Kötü)</option>
+                                <option value="1">⭐ 1 / 10 (Zaman Kaybı)</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <textarea id="reviewContent" class="form-control bg-dark text-white rounded-4 border-secondary" rows="4" placeholder="Film hakkında ne düşünüyorsun? Karakterler, senaryo, oyunculuklar nasıl? (Spoiler vermemeye dikkat edebilirsin 🍿)"></textarea>
+                        </div>
+
+                        <div class="col-12 text-end">
+                            <button type="button" class="btn btn-success rounded-pill px-4 fw-semibold shadow" onclick="submitReview()">
+                                <i class="bi bi-send"></i> İncelemeyi Gönder
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="review-list">
+                    <h5 class="fw-bold text-white mb-3">Kullanıcı İncelemeleri (@((ViewBag.Reviews as List<CinemaShelf.Models.Review>)?.Count ?? 0))</h5>
+
+                    @if (ViewBag.Reviews != null && (ViewBag.Reviews as List<CinemaShelf.Models.Review>).Any())
+                    {
+                        @foreach (var review in ViewBag.Reviews as List<CinemaShelf.Models.Review>)
+                        {
+                            <div class="card border-0 shadow-sm rounded-4 p-3 mb-3 bg-dark bg-opacity-40 border-start border-4 border-success text-white">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="bg-success text-dark rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 35px; height: 35px; font-size: 0.9rem;">
+                                            @review.AppUser?.Username?.Substring(0, 1).ToUpper()
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold text-white mb-0 small">@review.AppUser?.Username</h6>
+                                            <small class="text-muted" style="font-size: 0.75rem;">@review.CreatedDate.ToString("dd MMMM yyyy")</small>
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-warning text-dark fw-bold px-2 py-1 rounded">⭐ @review.Rating / 10</span>
+                                </div>
+                                <p class="text-light-50 small mb-0 mt-2" style="white-space: pre-line;">@review.Content</p>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center py-4 text-muted bg-dark bg-opacity-30 rounded-4 border border-secondary border-dashed">
+                            <p class="mb-0 small">Bu film için henüz hiç inceleme yazılmamış. İlk yorumu sen yaz! ✍️</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
@@ -123,6 +194,10 @@
     .movie-info-box {
         text-shadow: 1px 1px 5px rgba(0,0,0,0.5);
     }
+
+    .text-light-50 {
+        color: rgba(255, 255, 255, 0.7) !important;
+    }
 </style>
 
 <script>
@@ -148,6 +223,48 @@
             .catch(error => {
                 console.error('Hata:', error);
                 alert('Hesabınız olmadığı için rafa eklenemedi. Lütfen giriş yapınız.');
+            });
+    }
+
+    // ⚡ AJAX İLE SAYFA YENİLENMEDEN YORUM GÖNDERME SCRIPTI
+    function submitReview() {
+        const content = document.getElementById("reviewContent").value.trim();
+        const rating = parseInt(document.getElementById("reviewRating").value);
+
+        const tmdbId = parseInt('@Model.Id');
+        const movieTitle = '@Model.Title'.replace("'", "\\'");
+        const posterPath = '@Model.Poster_Path';
+
+        if (!content) {
+            alert("Lütfen film hakkında bir şeyler yazın!");
+            return;
+        }
+
+        const reviewData = {
+            TmdbId: tmdbId,
+            Content: content,
+            Rating: rating,
+            MovieTitle: movieTitle,
+            PosterPath: posterPath
+        };
+
+        fetch('/Movie/AddReview', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(reviewData)
+        })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                if (data.success) {
+                    location.reload(); // Yorum eklenince listeyi tazelemek için sayfayı yeniliyoruz
+                }
+            })
+            .catch(error => {
+                console.error('Hata:', error);
+                alert('Yorum gönderilirken bir hata oluştu. Giriş yaptığınızdan emin olun.');
             });
     }
 </script>

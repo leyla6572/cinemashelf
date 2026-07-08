@@ -19,5 +19,7 @@ namespace CinemaShelf.Models
 
         // İlişki: Bir film, birçok kullanıcının rafında bulunabilir.
         public ICollection<UserMovie> UserMovies { get; set; } = new List<UserMovie>();
+
+        public List<Review> Reviews { get; set; } = new();
     }
 }

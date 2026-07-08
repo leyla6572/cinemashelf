@@ -18,7 +18,8 @@ namespace CinemaShelf.Controllers
         }
 
         // ==================== PROFİL ANA SAYFASI ====================
-        
+
+        // ==================== PROFİL ANA SAYFASI ====================
         public async Task<IActionResult> Index()
         {
             // 1. Giriş yapan kullanıcının ID'sini cookielerden çekiyoruz
@@ -28,10 +29,12 @@ namespace CinemaShelf.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            // 2. Kullanıcıyı ve onun rafındaki filmleri (UserMovies -> Movie) veri tabanından getiriyoruz
+            // 2. Kullanıcıyı, rafındaki filmleri VE YAPTIĞI YORUMLARI (Reviews -> Movie ile birlikte) getiriyoruz
             var user = await _context.AppUsers
                 .Include(u => u.UserMovies)
                     .ThenInclude(um => um.Movie)
+                .Include(u => u.Reviews)              // 🌟 YENİ: Kullanıcının yorumlarını dahil et
+                    .ThenInclude(r => r.Movie)        // 🌟 YENİ: Yorumun hangi filme yapıldığını dahil et
                 .FirstOrDefaultAsync(u => u.Id == userId);
 
             if (user == null)
@@ -39,10 +42,10 @@ namespace CinemaShelf.Controllers
                 return NotFound("Kullanıcı bulunamadı.");
             }
 
-            // 🌟 YENİ: İleride ekleyeceğimiz yeni özelliklere iskelet olması için 
-            // dinamik istatistikleri hesaplayıp arayüze (View) gönderiyoruz
+            // Dinamik istatistikler ve sayaçlar
             ViewBag.TotalMovies = user.UserMovies?.Count ?? 0;
             ViewBag.WatchlistCount = user.UserMovies?.Count(um => um.Status == WatchStatus.Watchlist) ?? 0;
+            ViewBag.ReviewsCount = user.Reviews?.Count ?? 0; // 🌟 YENİ: Toplam yorum sayısı sayacı
 
             return View(user);
         }

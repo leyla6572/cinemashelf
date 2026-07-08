@@ -50,5 +50,6 @@ namespace CinemaShelf.Data
                 .HasForeignKey(f => f.FollowingId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
+        public DbSet<Review> Reviews { get; set; }
     }
 }
