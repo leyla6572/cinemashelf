@@ -1,0 +1,153 @@
+﻿@model CinemaShelf.Models.TmdbMovieDetailResponse
+
+@{
+    ViewData["Title"] = Model.Title + " - Film Detayları";
+}
+
+<div class="movie-backdrop" style="background-image: url('https://image.tmdb.org/t/p/original@(Model.Backdrop_Path)');">
+    <div class="backdrop-overlay"></div>
+</div>
+
+<div class="container movie-detail-container">
+    <div class="row">
+        <div class="col-md-4 text-center text-md-start mb-4">
+            @if (!string.IsNullOrEmpty(Model.Poster_Path))
+            {
+                <img src="https://image.tmdb.org/t/p/w500@(Model.Poster_Path)" class="img-fluid rounded-3 shadow-lg movie-detail-poster" alt="@Model.Title">
+            }
+            else
+            {
+                <div class="bg-secondary rounded-3 d-flex align-items-center justify-content-center text-white shadow-lg mx-auto" style="width: 100%; max-width: 300px; height: 450px;">
+                    <span class="fs-5">Afiş Yok</span>
+                </div>
+            }
+        </div>
+
+        <div class="col-md-8 text-white movie-info-box">
+            <h1 class="fw-bold display-5 mb-2 text-shadow">@Model.Title</h1>
+
+            <div class="d-flex flex-wrap align-items-center gap-3 mb-4 small text-light-50">
+                <span class="badge bg-warning text-dark fw-bold fs-6">⭐ @Model.Vote_Average.ToString("0.0")</span>
+                <span>📅 @(string.IsNullOrEmpty(Model.Release_Date) ? "Bilinmiyor" : DateTime.Parse(Model.Release_Date).ToString("dd.MM.yyyy"))</span>
+                <span>⏱️ @Model.Runtime dk</span>
+                @if (Model.Budget > 0)
+                {
+                    <span>💰 Bütçe: $@Model.Budget.ToString("N0")</span>
+                }
+            </div>
+
+            <div class="mb-4">
+                @foreach (var genre in Model.Genres)
+                {
+                    <span class="badge bg-dark border border-secondary text-white me-2 px-3 py-2 rounded-pill">@genre.Name</span>
+                }
+            </div>
+
+            <div class="mb-5 bg-dark-opacity p-4 rounded-3 backdrop-blur">
+                <h4 class="fw-bold text-success mb-3">Özet</h4>
+                <p class="lead fs-6 lh-lg" style="text-align: justify;">
+                    @(string.IsNullOrEmpty(Model.Overview) ? "Bu film için henüz bir Türkçe özet eklenmemiş." : Model.Overview)
+                </p>
+            </div>
+
+            <div class="d-flex gap-3">
+                <button class="btn btn-success btn-lg rounded-pill px-5 fw-bold shadow"
+                        onclick="addToShelf('@Model.Id', '@Model.Title.Replace("'", "\\'")', '@Model.Poster_Path')">
+                    ➕ Rafa Ekle
+                </button>
+                <a href="javascript:history.back()" class="btn btn-outline-light btn-lg rounded-pill px-4">Geri Dön</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Büyük yatay arka plan resmi */
+    .movie-backdrop {
+        position: absolute;
+        top: 56px; /* Navbar yüksekliğine göre ayarlandı */
+        left: 0;
+        width: 100%;
+        height: 550px;
+        background-size: cover;
+        background-position: center top;
+        z-index: -2;
+    }
+
+    /* Resmin üzerindeki karanlık ve solma efekti */
+    .backdrop-overlay {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(to bottom, rgba(30, 30, 30, 0.4) 0%, rgba(18, 18, 18, 1) 90%), linear-gradient(to right, rgba(18, 18, 18, 0.5) 0%, rgba(18, 18, 18, 0.9) 100%);
+        z-index: -1;
+    }
+
+    /* Sayfa içeriğini yukarı taşımak ve hizalamak için */
+    .movie-detail-container {
+        margin-top: 180px;
+        position: relative;
+        z-index: 1;
+        padding-bottom: 80px;
+    }
+
+    .movie-detail-poster {
+        transition: transform 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+        .movie-detail-poster:hover {
+            transform: scale(1.02);
+        }
+
+    /* Metinlerin okunabilirliğini artırmak için gölge ve arka plan opaklığı */
+    .text-shadow {
+        text-shadow: 2px 4px 10px rgba(0, 0, 0, 0.8);
+    }
+
+    .bg-dark-opacity {
+        background-color: rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .backdrop-blur {
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+    }
+
+    /* Genel sayfa arka planını detay sayfasındayken koyulaştırmak için */
+    body {
+        background-color: #121212 !important;
+    }
+
+    .movie-info-box {
+        text-shadow: 1px 1px 5px rgba(0,0,0,0.5);
+    }
+</style>
+
+<script>
+    function addToShelf(tmdbId, title, posterPath) {
+        const movieData = {
+            TmdbId: parseInt(tmdbId),
+            Title: title,
+            Overview: "",
+            PosterPath: posterPath
+        };
+
+        fetch('/Profile/AddToUserShelf', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(movieData)
+        })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+            })
+            .catch(error => {
+                console.error('Hata:', error);
+                alert('Hesabınız olmadığı için rafa eklenemedi. Lütfen giriş yapınız.');
+            });
+    }
+</script>

@@ -55,5 +55,21 @@ namespace CinemaShelf.Services
                 return new List<TmdbMovieResult>();
             }
         }
+        // Film ID'sine göre detaylı bilgi getiren metod
+        public async Task<TmdbMovieDetailResponse?> GetMovieDetailsAsync(int movieId)
+        {
+            var url = $"movie/{movieId}?api_key={_apiKey}&language=tr-TR";
+
+            try
+            {
+                // Detay verileri için birazdan oluşturacağımız yeni modeli kullanıyoruz
+                var response = await _httpClient.GetFromJsonAsync<TmdbMovieDetailResponse>(url);
+                return response;
+            }
+            catch
+            {
+                return null;
+            }
+        }
     }
 }

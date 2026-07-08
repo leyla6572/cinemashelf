@@ -16,22 +16,26 @@
                     <div class="movie-row-item">
                         <div class="card h-100 shadow-sm border-0 rounded-3 overflow-hidden movie-card">
                             <div class="position-relative">
-                                @if (!string.IsNullOrEmpty(movie.Poster_Path))
-                                {
-                                    <img src="https://image.tmdb.org/t/p/w500@(movie.Poster_Path)" class="card-img-top" alt="@movie.Title" style="height: 280px; object-fit: cover;">
-                                }
-                                else
-                                {
-                                    <div class="bg-secondary d-flex align-items-center justify-content-center text-white" style="height: 280px;">
-                                        <span>Afiş Yok</span>
-                                    </div>
-                                }
+                                <a href="/Movie/Details/@movie.Id">
+                                    @if (!string.IsNullOrEmpty(movie.Poster_Path))
+                                    {
+                                        <img src="https://image.tmdb.org/t/p/w500@(movie.Poster_Path)" class="card-img-top" alt="@movie.Title" style="height: 280px; object-fit: cover;">
+                                    }
+                                    else
+                                    {
+                                        <div class="bg-secondary d-flex align-items-center justify-content-center text-white" style="height: 280px;">
+                                            <span>Afiş Yok</span>
+                                        </div>
+                                    }
+                                </a>
                                 <span class="position-absolute top-0 end-0 bg-warning text-dark fw-bold m-2 px-2 py-1 rounded shadow-sm small">
                                     ⭐ @movie.Vote_Average.ToString("0.0")
                                 </span>
                             </div>
                             <div class="card-body p-2 bg-light text-center">
-                                <h6 class="card-title fw-bold text-truncate mb-2" title="@movie.Title">@movie.Title</h6>
+                                <a href="/Movie/Details/@movie.Id" class="text-decoration-none">
+                                    <h6 class="card-title fw-bold text-truncate mb-2 text-dark" title="@movie.Title">@movie.Title</h6>
+                                </a>
                                 <button class="btn btn-outline-primary btn-xs w-100 rounded-pill fw-semibold btn-sm"
                                         onclick="addToShelf('@movie.Id', '@movie.Title.Replace("'", "\\'")', '@movie.Poster_Path')">
                                     ➕ Rafa Ekle
@@ -58,22 +62,26 @@
                     <div class="movie-row-item">
                         <div class="card h-100 shadow-sm border-0 rounded-3 overflow-hidden movie-card">
                             <div class="position-relative">
-                                @if (!string.IsNullOrEmpty(movie.Poster_Path))
-                                {
-                                    <img src="https://image.tmdb.org/t/p/w500@(movie.Poster_Path)" class="card-img-top" alt="@movie.Title" style="height: 280px; object-fit: cover;">
-                                }
-                                else
-                                {
-                                    <div class="bg-secondary d-flex align-items-center justify-content-center text-white" style="height: 280px;">
-                                        <span>Afiş Yok</span>
-                                    </div>
-                                }
+                                <a href="/Movie/Details/@movie.Id">
+                                    @if (!string.IsNullOrEmpty(movie.Poster_Path))
+                                    {
+                                        <img src="https://image.tmdb.org/t/p/w500@(movie.Poster_Path)" class="card-img-top" alt="@movie.Title" style="height: 280px; object-fit: cover;">
+                                    }
+                                    else
+                                    {
+                                        <div class="bg-secondary d-flex align-items-center justify-content-center text-white" style="height: 280px;">
+                                            <span>Afiş Yok</span>
+                                        </div>
+                                    }
+                                </a>
                                 <span class="position-absolute top-0 end-0 bg-warning text-dark fw-bold m-2 px-2 py-1 rounded shadow-sm small">
                                     ⭐ @movie.Vote_Average.ToString("0.0")
                                 </span>
                             </div>
                             <div class="card-body p-2 bg-light text-center">
-                                <h6 class="card-title fw-bold text-truncate mb-2" title="@movie.Title">@movie.Title</h6>
+                                <a href="/Movie/Details/@movie.Id" class="text-decoration-none">
+                                    <h6 class="card-title fw-bold text-truncate mb-2 text-dark" title="@movie.Title">@movie.Title</h6>
+                                </a>
                                 <button class="btn btn-outline-primary btn-xs w-100 rounded-pill fw-semibold btn-sm"
                                         onclick="addToShelf('@movie.Id', '@movie.Title.Replace("'", "\\'")', '@movie.Poster_Path')">
                                     ➕ Rafa Ekle
@@ -100,22 +108,26 @@
                     <div class="movie-row-item">
                         <div class="card h-100 shadow-sm border-0 rounded-3 overflow-hidden movie-card">
                             <div class="position-relative">
-                                @if (!string.IsNullOrEmpty(movie.Poster_Path))
-                                {
-                                    <img src="https://image.tmdb.org/t/p/w500@(movie.Poster_Path)" class="card-img-top" alt="@movie.Title" style="height: 280px; object-fit: cover;">
-                                }
-                                else
-                                {
-                                    <div class="bg-secondary d-flex align-items-center justify-content-center text-white" style="height: 280px;">
-                                        <span>Afiş Yok</span>
-                                    </div>
-                                }
+                                <a href="/Movie/Details/@movie.Id">
+                                    @if (!string.IsNullOrEmpty(movie.Poster_Path))
+                                    {
+                                        <img src="https://image.tmdb.org/t/p/w500@(movie.Poster_Path)" class="card-img-top" alt="@movie.Title" style="height: 280px; object-fit: cover;">
+                                    }
+                                    else
+                                    {
+                                        <div class="bg-secondary d-flex align-items-center justify-content-center text-white" style="height: 280px;">
+                                            <span>Afiş Yok</span>
+                                        </div>
+                                    }
+                                </a>
                                 <span class="position-absolute top-0 end-0 bg-warning text-dark fw-bold m-2 px-2 py-1 rounded shadow-sm small">
                                     ⭐ @movie.Vote_Average.ToString("0.0")
                                 </span>
                             </div>
                             <div class="card-body p-2 bg-light text-center">
-                                <h6 class="card-title fw-bold text-truncate mb-2" title="@movie.Title">@movie.Title</h6>
+                                <a href="/Movie/Details/@movie.Id" class="text-decoration-none">
+                                    <h6 class="card-title fw-bold text-truncate mb-2 text-dark" title="@movie.Title">@movie.Title</h6>
+                                </a>
                                 <button class="btn btn-outline-primary btn-xs w-100 rounded-pill fw-semibold btn-sm"
                                         onclick="addToShelf('@movie.Id', '@movie.Title.Replace("'", "\\'")', '@movie.Poster_Path')">
                                     ➕ Rafa Ekle
@@ -142,22 +154,26 @@
                     <div class="movie-row-item">
                         <div class="card h-100 shadow-sm border-0 rounded-3 overflow-hidden movie-card">
                             <div class="position-relative">
-                                @if (!string.IsNullOrEmpty(movie.Poster_Path))
-                                {
-                                    <img src="https://image.tmdb.org/t/p/w500@(movie.Poster_Path)" class="card-img-top" alt="@movie.Title" style="height: 280px; object-fit: cover;">
-                                }
-                                else
-                                {
-                                    <div class="bg-secondary d-flex align-items-center justify-content-center text-white" style="height: 280px;">
-                                        <span>Afiş Yok</span>
-                                    </div>
-                                }
+                                <a href="/Movie/Details/@movie.Id">
+                                    @if (!string.IsNullOrEmpty(movie.Poster_Path))
+                                    {
+                                        <img src="https://image.tmdb.org/t/p/w500@(movie.Poster_Path)" class="card-img-top" alt="@movie.Title" style="height: 280px; object-fit: cover;">
+                                    }
+                                    else
+                                    {
+                                        <div class="bg-secondary d-flex align-items-center justify-content-center text-white" style="height: 280px;">
+                                            <span>Afiş Yok</span>
+                                        </div>
+                                    }
+                                </a>
                                 <span class="position-absolute top-0 end-0 bg-warning text-dark fw-bold m-2 px-2 py-1 rounded shadow-sm small">
                                     ⭐ @movie.Vote_Average.ToString("0.0")
                                 </span>
                             </div>
                             <div class="card-body p-2 bg-light text-center">
-                                <h6 class="card-title fw-bold text-truncate mb-2" title="@movie.Title">@movie.Title</h6>
+                                <a href="/Movie/Details/@movie.Id" class="text-decoration-none">
+                                    <h6 class="card-title fw-bold text-truncate mb-2 text-dark" title="@movie.Title">@movie.Title</h6>
+                                </a>
                                 <button class="btn btn-outline-primary btn-xs w-100 rounded-pill fw-semibold btn-sm"
                                         onclick="addToShelf('@movie.Id', '@movie.Title.Replace("'", "\\'")', '@movie.Poster_Path')">
                                     ➕ Rafa Ekle
@@ -199,7 +215,7 @@
 
     .movie-row-item {
         flex: 0 0 auto;
-        width: 200px; /* Kart genişliği şerit yapısına uygun olarak küçültüldü */
+        width: 200px;
         margin-right: 15px;
     }
 
@@ -235,7 +251,7 @@
             })
             .catch(error => {
                 console.error('Hata:', error);
-                alert('Film eklenirken bir hata meydana geldi.');
+                alert('Hesabınız olmadığı için rafa eklenemedi. Lütfen giriş yapınız.');
             });
     }
 </script>
