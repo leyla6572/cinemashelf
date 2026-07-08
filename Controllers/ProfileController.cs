@@ -18,6 +18,7 @@ namespace CinemaShelf.Controllers
         }
 
         // ==================== PROFİL ANA SAYFASI ====================
+        
         public async Task<IActionResult> Index()
         {
             // 1. Giriş yapan kullanıcının ID'sini cookielerden çekiyoruz
@@ -38,9 +39,13 @@ namespace CinemaShelf.Controllers
                 return NotFound("Kullanıcı bulunamadı.");
             }
 
+            // 🌟 YENİ: İleride ekleyeceğimiz yeni özelliklere iskelet olması için 
+            // dinamik istatistikleri hesaplayıp arayüze (View) gönderiyoruz
+            ViewBag.TotalMovies = user.UserMovies?.Count ?? 0;
+            ViewBag.WatchlistCount = user.UserMovies?.Count(um => um.Status == WatchStatus.Watchlist) ?? 0;
+
             return View(user);
         }
-
         // ==================== KİŞİSEL RAFA FİLM EKLEME (YENİ AJAX METODUMUZ) ====================
         [HttpPost]
         public async Task<IActionResult> AddToUserShelf([FromBody] MovieInputModel input)
