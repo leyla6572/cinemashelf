@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 
+
 namespace CinemaShelf.Controllers
 {
     public class HomeController : Controller
@@ -22,8 +23,16 @@ namespace CinemaShelf.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var popularMovies = await _movieApiService.GetPopularMoviesAsync();
-            return View(popularMovies);
+            var viewModel = new HomeViewModel
+            {
+                // TMDB ID'lerine göre filmleri asenkron olarak çekiyoruz
+                ActionMovies = await _movieApiService.GetMoviesByGenreAsync(28),
+                ComedyMovies = await _movieApiService.GetMoviesByGenreAsync(35),
+                DramaMovies = await _movieApiService.GetMoviesByGenreAsync(18),
+                SciFiMovies = await _movieApiService.GetMoviesByGenreAsync(878)
+            };
+
+            return View(viewModel);
         }
 
         public async Task<IActionResult> Search(string query)

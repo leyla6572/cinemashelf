@@ -1,90 +1,227 @@
-﻿@model List<CinemaShelf.Models.TmdbMovieResult>
+﻿@model CinemaShelf.Models.HomeViewModel
 
 @{
-    ViewData["Title"] = "Ana Sayfa - Popüler Filmler";
+    ViewData["Title"] = "Ana Sayfa - Kategoriler";
 }
 
 <div class="container mt-4">
-    <div class="mb-4">
-        <h2 class="fw-bold text-dark">🍿 Popüler Filmler</h2>
-    </div>
 
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
-        @if (Model != null && Model.Any())
-        {
-            @foreach (var movie in Model)
+    <div class="mb-5">
+        <h3 class="fw-bold text-dark mb-3">💥 Aksiyon Filmleri</h3>
+        <div class="movie-row-container">
+            @if (Model.ActionMovies != null && Model.ActionMovies.Any())
             {
-                <div class="col">
-                    <div class="card h-100 shadow-sm border-0 rounded-3 overflow-hidden movie-card">
-
-                        <div class="position-relative">
-                            @if (!string.IsNullOrEmpty(movie.Poster_Path))
-                            {
-                                <img src="https://image.tmdb.org/t/p/w500@(movie.Poster_Path)" class="card-img-top" alt="@movie.Title" style="height: 380px; object-fit: cover;">
-                            }
-                            else
-                            {
-                                <div class="bg-secondary d-flex align-items-center justify-content-center text-white" style="height: 380px;">
-                                    <span>Afiş Yok</span>
-                                </div>
-                            }
-
-                            <span class="position-absolute top-0 end-0 bg-warning text-dark fw-bold m-2 px-2 py-1 rounded shadow-sm">
-                                ⭐ @movie.Vote_Average.ToString("0.0")
-                            </span>
-                        </div>
-
-                        <div class="card-body d-flex flex-column justify-content-between bg-light">
-                            <div>
-                                <h5 class="card-title fw-bold text-truncate" title="@movie.Title">@movie.Title</h5>
-                                <p class="card-text text-muted small text-clamp" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
-                                    @(string.IsNullOrEmpty(movie.Overview) ? "Bu film için henüz bir özet eklenmemiş." : movie.Overview)
-                                </p>
+                @foreach (var movie in Model.ActionMovies)
+                {
+                    <div class="movie-row-item">
+                        <div class="card h-100 shadow-sm border-0 rounded-3 overflow-hidden movie-card">
+                            <div class="position-relative">
+                                @if (!string.IsNullOrEmpty(movie.Poster_Path))
+                                {
+                                    <img src="https://image.tmdb.org/t/p/w500@(movie.Poster_Path)" class="card-img-top" alt="@movie.Title" style="height: 280px; object-fit: cover;">
+                                }
+                                else
+                                {
+                                    <div class="bg-secondary d-flex align-items-center justify-content-center text-white" style="height: 280px;">
+                                        <span>Afiş Yok</span>
+                                    </div>
+                                }
+                                <span class="position-absolute top-0 end-0 bg-warning text-dark fw-bold m-2 px-2 py-1 rounded shadow-sm small">
+                                    ⭐ @movie.Vote_Average.ToString("0.0")
+                                </span>
                             </div>
-
-                            <div class="mt-3">
-                                <button class="btn btn-outline-primary btn-sm w-100 rounded-pill fw-semibold"
+                            <div class="card-body p-2 bg-light text-center">
+                                <h6 class="card-title fw-bold text-truncate mb-2" title="@movie.Title">@movie.Title</h6>
+                                <button class="btn btn-outline-primary btn-xs w-100 rounded-pill fw-semibold btn-sm"
                                         onclick="addToShelf('@movie.Id', '@movie.Title.Replace("'", "\\'")', '@movie.Poster_Path')">
                                     ➕ Rafa Ekle
                                 </button>
                             </div>
                         </div>
-
                     </div>
-                </div>
+                }
             }
-        }
-        else
-        {
-            <div class="col-12 text-center py-5">
-                <p class="text-muted fs-5">Şu anda listelenecek popüler film bulunamadı.</p>
-            </div>
-        }
+            else
+            {
+                <p class="text-muted ps-3">Bu kategoride film bulunamadı.</p>
+            }
+        </div>
     </div>
+
+    <div class="mb-5">
+        <h3 class="fw-bold text-dark mb-3">😂 Komedi Filmleri</h3>
+        <div class="movie-row-container">
+            @if (Model.ComedyMovies != null && Model.ComedyMovies.Any())
+            {
+                @foreach (var movie in Model.ComedyMovies)
+                {
+                    <div class="movie-row-item">
+                        <div class="card h-100 shadow-sm border-0 rounded-3 overflow-hidden movie-card">
+                            <div class="position-relative">
+                                @if (!string.IsNullOrEmpty(movie.Poster_Path))
+                                {
+                                    <img src="https://image.tmdb.org/t/p/w500@(movie.Poster_Path)" class="card-img-top" alt="@movie.Title" style="height: 280px; object-fit: cover;">
+                                }
+                                else
+                                {
+                                    <div class="bg-secondary d-flex align-items-center justify-content-center text-white" style="height: 280px;">
+                                        <span>Afiş Yok</span>
+                                    </div>
+                                }
+                                <span class="position-absolute top-0 end-0 bg-warning text-dark fw-bold m-2 px-2 py-1 rounded shadow-sm small">
+                                    ⭐ @movie.Vote_Average.ToString("0.0")
+                                </span>
+                            </div>
+                            <div class="card-body p-2 bg-light text-center">
+                                <h6 class="card-title fw-bold text-truncate mb-2" title="@movie.Title">@movie.Title</h6>
+                                <button class="btn btn-outline-primary btn-xs w-100 rounded-pill fw-semibold btn-sm"
+                                        onclick="addToShelf('@movie.Id', '@movie.Title.Replace("'", "\\'")', '@movie.Poster_Path')">
+                                    ➕ Rafa Ekle
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="text-muted ps-3">Bu kategoride film bulunamadı.</p>
+            }
+        </div>
+    </div>
+
+    <div class="mb-5">
+        <h3 class="fw-bold text-dark mb-3">🎭 Dram Filmleri</h3>
+        <div class="movie-row-container">
+            @if (Model.DramaMovies != null && Model.DramaMovies.Any())
+            {
+                @foreach (var movie in Model.DramaMovies)
+                {
+                    <div class="movie-row-item">
+                        <div class="card h-100 shadow-sm border-0 rounded-3 overflow-hidden movie-card">
+                            <div class="position-relative">
+                                @if (!string.IsNullOrEmpty(movie.Poster_Path))
+                                {
+                                    <img src="https://image.tmdb.org/t/p/w500@(movie.Poster_Path)" class="card-img-top" alt="@movie.Title" style="height: 280px; object-fit: cover;">
+                                }
+                                else
+                                {
+                                    <div class="bg-secondary d-flex align-items-center justify-content-center text-white" style="height: 280px;">
+                                        <span>Afiş Yok</span>
+                                    </div>
+                                }
+                                <span class="position-absolute top-0 end-0 bg-warning text-dark fw-bold m-2 px-2 py-1 rounded shadow-sm small">
+                                    ⭐ @movie.Vote_Average.ToString("0.0")
+                                </span>
+                            </div>
+                            <div class="card-body p-2 bg-light text-center">
+                                <h6 class="card-title fw-bold text-truncate mb-2" title="@movie.Title">@movie.Title</h6>
+                                <button class="btn btn-outline-primary btn-xs w-100 rounded-pill fw-semibold btn-sm"
+                                        onclick="addToShelf('@movie.Id', '@movie.Title.Replace("'", "\\'")', '@movie.Poster_Path')">
+                                    ➕ Rafa Ekle
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="text-muted ps-3">Bu kategoride film bulunamadı.</p>
+            }
+        </div>
+    </div>
+
+    <div class="mb-5">
+        <h3 class="fw-bold text-dark mb-3">🚀 Bilim Kurgu Filmleri</h3>
+        <div class="movie-row-container">
+            @if (Model.SciFiMovies != null && Model.SciFiMovies.Any())
+            {
+                @foreach (var movie in Model.SciFiMovies)
+                {
+                    <div class="movie-row-item">
+                        <div class="card h-100 shadow-sm border-0 rounded-3 overflow-hidden movie-card">
+                            <div class="position-relative">
+                                @if (!string.IsNullOrEmpty(movie.Poster_Path))
+                                {
+                                    <img src="https://image.tmdb.org/t/p/w500@(movie.Poster_Path)" class="card-img-top" alt="@movie.Title" style="height: 280px; object-fit: cover;">
+                                }
+                                else
+                                {
+                                    <div class="bg-secondary d-flex align-items-center justify-content-center text-white" style="height: 280px;">
+                                        <span>Afiş Yok</span>
+                                    </div>
+                                }
+                                <span class="position-absolute top-0 end-0 bg-warning text-dark fw-bold m-2 px-2 py-1 rounded shadow-sm small">
+                                    ⭐ @movie.Vote_Average.ToString("0.0")
+                                </span>
+                            </div>
+                            <div class="card-body p-2 bg-light text-center">
+                                <h6 class="card-title fw-bold text-truncate mb-2" title="@movie.Title">@movie.Title</h6>
+                                <button class="btn btn-outline-primary btn-xs w-100 rounded-pill fw-semibold btn-sm"
+                                        onclick="addToShelf('@movie.Id', '@movie.Title.Replace("'", "\\'")', '@movie.Poster_Path')">
+                                    ➕ Rafa Ekle
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="text-muted ps-3">Bu kategoride film bulunamadı.</p>
+            }
+        </div>
+    </div>
+
 </div>
 
 <style>
+    .movie-row-container {
+        display: flex;
+        overflow-x: auto;
+        overflow-y: hidden;
+        white-space: nowrap;
+        padding-bottom: 15px;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+    }
+
+        /* Tarayıcıların varsayılan çirkin kaydırma çubuklarını gizliyoruz */
+        .movie-row-container::-webkit-scrollbar {
+            display: none;
+        }
+
+    .movie-row-container {
+        -ms-overflow-style: none; /* IE ve Edge */
+        scrollbar-width: none; /* Firefox */
+    }
+
+    .movie-row-item {
+        flex: 0 0 auto;
+        width: 200px; /* Kart genişliği şerit yapısına uygun olarak küçültüldü */
+        margin-right: 15px;
+    }
+
     .movie-card {
         transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
         .movie-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2) !important;
         }
 </style>
 
 <script>
     function addToShelf(tmdbId, title, posterPath) {
-        // Gönderilecek film verisi paketleniyor
         const movieData = {
             TmdbId: parseInt(tmdbId),
             Title: title,
-            Overview: "", // Veri tabanını çok şişirmemek için özeti boş geçebiliriz, istersen ekleyebiliriz de
+            Overview: "",
             PosterPath: posterPath
         };
 
-        // 🌟 GÜNCELLENEN ALAN: İstek artık genel havuz yerine giriş yapan kullanıcının profiline gidiyor
         fetch('/Profile/AddToUserShelf', {
             method: 'POST',
             headers: {
@@ -94,7 +231,6 @@
         })
             .then(response => response.json())
             .then(data => {
-                // Controller'dan gelen cevaba göre kullanıcıya bildirim veriliyor
                 alert(data.message);
             })
             .catch(error => {
