@@ -29,5 +29,7 @@ namespace CinemaShelf.Models
         public ICollection<UserMovie> UserMovies { get; set; } = new List<UserMovie>();
 
         public List<Review> Reviews { get; set; } = new();
+        public ICollection<MovieQuote> MovieQuotes { get; set; } = new List<MovieQuote>();
     }
+
 }

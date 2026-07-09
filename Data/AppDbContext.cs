@@ -62,5 +62,7 @@ namespace CinemaShelf.Data
         public DbSet<Review> Reviews { get; set; }
 
         public DbSet<ReviewLike> ReviewLikes { get; set; }
+
+        public DbSet<MovieQuote> MovieQuotes { get; set; }
     }
 }
