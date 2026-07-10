@@ -36,7 +36,7 @@
                     <span class="text-muted small ms-1">Toplam Film</span>
                 </div>
                 <div>
-                    <span class="fw-bold text-dark fs-5">@watchlistCount</span>
+                    <span class="fw-bold text-dark fs-5" id="watchlist-count-badge">@watchlistCount</span>
                     <span class="text-muted small ms-1">İzlenecekler</span>
                 </div>
                 <div>
@@ -64,7 +64,7 @@
     <ul class="nav nav-tabs custom-profile-tabs border-bottom" id="profileTabs" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active" id="watchlist-tab" data-bs-toggle="tab" data-bs-target="#watchlist-content" type="button" role="tab">
-                İzlenecekler (@watchlistCount)
+                İzlenecekler (<span id="watchlist-tab-count">@watchlistCount</span>)
             </button>
         </li>
         <li class="nav-item" role="presentation">
@@ -97,7 +97,7 @@
         <div class="tab-pane fade show active" id="watchlist-content" role="tabpanel">
             @if (ViewBag.Watchlist != null && ((List<CinemaShelf.Models.UserMovie>)ViewBag.Watchlist).Any())
             {
-                <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3">
+                <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3" id="watchlist-container-row">
                     @foreach (var userMovie in (List<CinemaShelf.Models.UserMovie>)ViewBag.Watchlist)
                     {
                         var movie = userMovie.Movie;
@@ -109,11 +109,18 @@
                                                 style="width: 28px; height: 28px;" type="button" data-bs-toggle="dropdown">
                                             <i class="bi bi-three-dots-vertical text-white small"></i>
                                         </button>
-                                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 small">
+                                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 small py-1">
                                             <li>
                                                 <a class="dropdown-menu-item dropdown-item py-2 fw-medium text-success" href="javascript:void(0);"
                                                    onclick="openWatchedModal(@movie.Id, '@movie.Title')">
                                                     <i class="bi bi-check2-circle me-2"></i> İzledim
+                                                </a>
+                                            </li>
+                                            <!-- YENİ ENTEGRASYON: Raftan Kaldır Butonu -->
+                                            <li>
+                                                <a class="dropdown-menu-item dropdown-item py-2 fw-medium text-danger" href="javascript:void(0);"
+                                                   onclick="removeFromShelf(@movie.Id)">
+                                                    <i class="bi bi-x-circle me-2"></i> Raftan Kaldır
                                                 </a>
                                             </li>
                                         </ul>
@@ -132,7 +139,6 @@
                                         }
                                     </a>
                                 </div>
-                                <!-- DEĞİŞTİRİLECEK ALAN (BURAYI BUL) -->
                                 <div class="card-body p-2 bg-info text-white text-center">
                                     <a href="/Movie/Details/@movie.TmdbId" class="text-decoration-none text-white">
                                         <h6 class="card-title fw-semibold text-truncate mb-0 small" title="@movie.Title">@movie.Title</h6>
@@ -145,11 +151,16 @@
             }
             else
             {
-                <div class="text-center py-5 text-muted">
+                <div class="text-center py-5 text-muted" id="watchlist-empty-message">
                     <p class="mb-2">İzlenecekler listeniz henüz boş... 🏜️</p>
                     <a href="/Home/Index" class="btn btn-sm btn-primary rounded-pill px-3">Film Keşfet</a>
                 </div>
             }
+            <!-- Dinamik boş mesajı için yedek konteyner (Eğer tüm filmler el ile silinirse tetiklenecek) -->
+            <div class="text-center py-5 text-muted d-none" id="watchlist-dynamic-empty">
+                <p class="mb-2">İzlenecekler listeniz henüz boş... 🏜️</p>
+                <a href="/Home/Index" class="btn btn-sm btn-primary rounded-pill px-3">Film Keşfet</a>
+            </div>
         </div>
 
         <!-- 2. İZLEDİKLERİM SEKMESİ -->
@@ -176,7 +187,6 @@
                                         }
                                     </a>
                                 </div>
-                                <!-- DEĞİŞTİRİLECEK ALAN (BURAYI BUL) -->
                                 <div class="card-body p-2 bg-success text-white text-center">
                                     <a href="/Movie/Details/@movie.TmdbId" class="text-decoration-none text-white">
                                         <h6 class="card-title fw-semibold text-truncate mb-0 small" title="@movie.Title">@movie.Title</h6>
@@ -204,7 +214,6 @@
                     {
                         var movie = userMovie.Movie;
 
-                        // 🌟 RENK AYRIMINI YAPAN DİNAMİK C# MANTIĞI
                         var cardBackgroundClass = userMovie.Status == CinemaShelf.Models.WatchStatus.Watched ? "bg-success" : "bg-info";
                         var badgeText = userMovie.Status == CinemaShelf.Models.WatchStatus.Watched ? "İzlendi" : "İzlenecek";
                         var badgeClass = userMovie.Status == CinemaShelf.Models.WatchStatus.Watched ? "bg-success-subtle text-success border-success-subtle" : "bg-info-subtle text-info border-info-subtle";
@@ -247,7 +256,7 @@
 
         <!-- 4. YORUMLAR SEKMESİ -->
         <div class="tab-pane fade" id="reviews-content" role="tabpanel">
-            @if (Model.Reviews!= null && Model.Reviews.Any())
+            @if (Model.Reviews != null && Model.Reviews.Any())
             {
                 <div class="d-flex flex-column gap-3" style="max-width: 750px; margin: 0 auto;">
                     @foreach (var review in Model.Reviews.OrderByDescending(r => r.CreatedDate))
@@ -285,7 +294,7 @@
             }
         </div>
 
-        <!-- 🌟 5. YENİ: REPLİKLER SEKMESİ İÇERİĞİ (SOSYAL MEDYA TARZI GİRİŞ KUTUSU ENTEGRELİ) -->
+        <!-- 🌟 5. YENİ: REPLİKLER SEKMESİ İÇERİĞİ -->
         <div class="tab-pane fade" id="quotes-content" role="tabpanel">
             <div class="d-flex flex-column gap-3" style="max-width: 750px; margin: 0 auto;">
 
@@ -297,15 +306,12 @@
                         </div>
 
                         <div class="flex-grow-1">
-                            <!-- Sahte Giriş Kutusu (Tıklanınca formu açar) -->
                             <div class="w-100 placeholder-box bg-light border rounded-pill px-3 py-2 text-muted small cursor-pointer border-light-subtle shadow-inner"
                                  onclick="toggleQuoteBox()" id="quotePlaceholder">
                                 Unutulmaz bir film repliği paylaş...
                             </div>
 
-                            <!-- Gerçek Veri Giriş Formu (Başlangıçta Gizli) -->
                             <div id="realQuoteForm" class="d-none">
-                                <!-- Film Seçim Alanı -->
                                 <div class="mb-2">
                                     <select class="form-select form-select-sm border border-light-subtle rounded-3 text-muted" id="quoteMovieId" style="font-size: 0.8rem;">
                                         <option value="">-- Rafınızdan Bir Film Seçin --</option>
@@ -318,12 +324,10 @@
                                         }
                                     </select>
                                 </div>
-                                <!-- Replik İçerik Alanı -->
                                 <div class="mb-2">
                                     <textarea class="form-control form-control-sm border border-light-subtle rounded-3 text-dark p-2"
                                               id="quoteContent" rows="3" placeholder="Hafızanıza kazınan o güzel cümleyi buraya ekleyin..." style="font-size: 0.85rem; resize: none;"></textarea>
                                 </div>
-                                <!-- İşlem Butonları -->
                                 <div class="d-flex justify-content-end gap-2">
                                     <button type="button" class="btn btn-sm btn-light border rounded-pill px-3 py-1" onclick="toggleQuoteBox()" style="font-size: 0.75rem;">İptal</button>
                                     <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-medium" onclick="submitNewQuote()" style="font-size: 0.75rem;">Paylaş</button>
@@ -340,8 +344,6 @@
                         foreach (var quote in Model.MovieQuotes.OrderByDescending(q => q.CreatedDate))
                         {
                             <div class="card border-0 shadow-sm rounded-4 p-4 bg-white position-relative overflow-hidden">
-                                
-
                                 <figure class="mb-0">
                                     <blockquote class="blockquote fs-6 text-dark fw-medium lh-base italic-quote">
                                         “@quote.Content”
@@ -467,6 +469,59 @@
             });
     }
 
+    // 🌟 YENİ ENTEGRASYON: Raftan Kaldır AJAX Fonksiyonu (Dinamik Arayüz Güncellemeli)
+    function removeFromShelf(movieId) {
+        if (confirm("Bu filmi izlenecekler listenizden kaldırmak istediğinize emin misiniz?")) {
+
+            fetch(`/Profile/RemoveFromShelf?movieId=${movieId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        // Filmin kartını DOM üzerinden bulup uçuruyoruz
+                        const movieCard = document.getElementById(`movie-col-${movieId}`);
+                        if (movieCard) {
+                            movieCard.style.transition = "all 0.4s ease";
+                            movieCard.style.opacity = "0";
+                            movieCard.style.transform = "scale(0.8)";
+
+                            setTimeout(() => {
+                                movieCard.remove();
+
+                                // Üst karttaki ve sekmedeki "İzlenecekler" sayaçlarını dinamik olarak düşürelim
+                                const badgeCount = document.getElementById('watchlist-count-badge');
+                                const tabCount = document.getElementById('watchlist-tab-count');
+
+                                if (badgeCount) {
+                                    let currentCount = parseInt(badgeCount.innerText) - 1;
+                                    badgeCount.innerText = currentCount >= 0 ? currentCount : 0;
+                                    if (tabCount) tabCount.innerText = currentCount >= 0 ? currentCount : 0;
+
+                                    // Eğer hiç film kalmadıysa boş liste mesajını göster
+                                    if (currentCount === 0) {
+                                        const oldEmptyMsg = document.getElementById('watchlist-empty-message');
+                                        if (oldEmptyMsg) {
+                                            oldEmptyMsg.classList.remove('d-none');
+                                        } else {
+                                            document.getElementById('watchlist-dynamic-empty').classList.remove('d-none');
+                                        }
+                                    }
+                                }
+                            }, 400);
+                        }
+                    } else {
+                        alert(result.message || "Film kaldırılırken bir hata oluştu.");
+                    }
+                })
+                .catch(err => {
+                    console.error("Hata:", err);
+                    alert("İstek gönderilirken sistemsel bir hata oluştu.");
+                });
+        }
+    }
+
     // 🌟 Replik Gönderme AJAX Fonksiyonu
     function submitNewQuote() {
         const movieId = document.getElementById('quoteMovieId').value;
@@ -548,7 +603,7 @@
         }
 
     .dropdown-menu {
-        min-width: 120px !important;
+        min-width: 135px !important;
     }
 
     .dropdown-menu-item:hover {

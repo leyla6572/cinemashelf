@@ -211,6 +211,50 @@ namespace CinemaShelf.Controllers
             }
         }
 
+        [HttpPost]
+        public async Task<IActionResult> RemoveFromShelf(int movieId)
+        {
+            // 1. Giriş yapan kullanıcının ID'sini çekiyoruz.
+            // Eğer projedeki diğer metotlarda farklı bir yöntem (örn: _userManager.GetUserId(User)) 
+            // kullanıyorsan burayı projenle aynı yapmalısın.
+            var currentUserIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(currentUserIdStr))
+            {
+                return Json(new { success = false, message = "Lütfen önce giriş yapın." });
+            }
+
+            // Eğer projedeki AppUser ID'si string değil de int ise dönüştürme yapıyoruz:
+            if (!int.TryParse(currentUserIdStr, out int currentUserId))
+            {
+                return Json(new { success = false, message = "Geçersiz kullanıcı oturumu." });
+            }
+
+            try
+            {
+                // 2. Veritabanından ilgili kaydı 'UserMovies' tablosundan buluyoruz.
+                var shelfItem = await _context.UserMovies
+                    .FirstOrDefaultAsync(x => x.MovieId == movieId && x.AppUserId == currentUserId);
+
+                if (shelfItem != null)
+                {
+                    // 3. İlgili kaydı veritabanından kaldırıp değişiklikleri kaydediyoruz.
+                    _context.UserMovies.Remove(shelfItem);
+                    await _context.SaveChangesAsync();
+
+                    return Json(new { success = true, message = "Film başarıyla raftan kaldırıldı." });
+                }
+
+                return Json(new { success = false, message = "Film listenizde bulunamadı." });
+            }
+            catch (Exception ex)
+            {
+                // Geliştirme aşamasında hatayı konsolda görebilmek için:
+                Console.WriteLine($"RemoveFromShelf Hatası: {ex.Message}");
+                return Json(new { success = false, message = "Film kaldırılırken sistemsel bir hata oluştu." });
+            }
+        }
+
         // JS'den gelen verileri karşılayan yardımcı modeller
         public class ShelfUpdateInputModel
         {
@@ -228,10 +272,12 @@ namespace CinemaShelf.Controllers
         }
     }
 
+
     public class MovieInputModel
     {
         public int TmdbId { get; set; }
         public string Title { get; set; } = string.Empty;
         public string? PosterPath { get; set; }
     }
+
 }
