@@ -6,6 +6,7 @@
 
 <div class="container mt-4">
 
+    <!-- 💥 Aksiyon Filmleri -->
     <div class="mb-5">
         <h3 class="fw-bold text-dark mb-3">💥 Aksiyon Filmleri</h3>
         <div class="movie-row-container">
@@ -44,6 +45,14 @@
                         </div>
                     </div>
                 }
+
+                <!-- Aksiyon için Daha Fazla (Genre ID: 28) -->
+                <div class="movie-row-item d-flex align-items-center">
+                    <div class="load-more-card" onclick="loadMoreMovies(28, this)">
+                        <div class="icon-circle"><span>❯</span></div>
+                        <small class="fw-bold text-muted d-block mt-2">Daha Fazla</small>
+                    </div>
+                </div>
             }
             else
             {
@@ -52,6 +61,7 @@
         </div>
     </div>
 
+    <!-- 😂 Komedi Filmleri -->
     <div class="mb-5">
         <h3 class="fw-bold text-dark mb-3">😂 Komedi Filmleri</h3>
         <div class="movie-row-container">
@@ -90,6 +100,14 @@
                         </div>
                     </div>
                 }
+
+                <!-- Komedi için Daha Fazla (Genre ID: 35) -->
+                <div class="movie-row-item d-flex align-items-center">
+                    <div class="load-more-card" onclick="loadMoreMovies(35, this)">
+                        <div class="icon-circle"><span>❯</span></div>
+                        <small class="fw-bold text-muted d-block mt-2">Daha Fazla</small>
+                    </div>
+                </div>
             }
             else
             {
@@ -98,6 +116,7 @@
         </div>
     </div>
 
+    <!-- 🎭 Dram Filmleri -->
     <div class="mb-5">
         <h3 class="fw-bold text-dark mb-3">🎭 Dram Filmleri</h3>
         <div class="movie-row-container">
@@ -136,6 +155,14 @@
                         </div>
                     </div>
                 }
+
+                <!-- Dram için Daha Fazla (Genre ID: 18) -->
+                <div class="movie-row-item d-flex align-items-center">
+                    <div class="load-more-card" onclick="loadMoreMovies(18, this)">
+                        <div class="icon-circle"><span>❯</span></div>
+                        <small class="fw-bold text-muted d-block mt-2">Daha Fazla</small>
+                    </div>
+                </div>
             }
             else
             {
@@ -144,6 +171,7 @@
         </div>
     </div>
 
+    <!-- 🚀 Bilim Kurgu Filmleri -->
     <div class="mb-5">
         <h3 class="fw-bold text-dark mb-3">🚀 Bilim Kurgu Filmleri</h3>
         <div class="movie-row-container">
@@ -182,6 +210,69 @@
                         </div>
                     </div>
                 }
+
+                <!-- Bilim Kurgu için Daha Fazla (Genre ID: 878) -->
+                <div class="movie-row-item d-flex align-items-center">
+                    <div class="load-more-card" onclick="loadMoreMovies(878, this)">
+                        <div class="icon-circle"><span>❯</span></div>
+                        <small class="fw-bold text-muted d-block mt-2">Daha Fazla</small>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted ps-3">Bu kategoride film bulunamadı.</p>
+            }
+        </div>
+    </div>
+
+    <!-- 🧸 Animasyon & Anime Filmleri -->
+    <div class="mb-5">
+        <h3 class="fw-bold text-dark mb-3">🧸 Animasyon & Anime Filmleri</h3>
+        <div class="movie-row-container">
+            @if (Model.AnimationMovies != null && Model.AnimationMovies.Any())
+            {
+                @foreach (var movie in Model.AnimationMovies)
+                {
+                    <div class="movie-row-item">
+                        <div class="card h-100 shadow-sm border-0 rounded-3 overflow-hidden movie-card">
+                            <div class="position-relative">
+                                <a href="/Movie/Details/@movie.Id">
+                                    @if (!string.IsNullOrEmpty(movie.Poster_Path))
+                                    {
+                                        <img src="https://image.tmdb.org/t/p/w500@(movie.Poster_Path)" class="card-img-top" alt="@movie.Title" style="height: 280px; object-fit: cover;">
+                                    }
+                                    else
+                                    {
+                                        <div class="bg-secondary d-flex align-items-center justify-content-center text-white" style="height: 280px;">
+                                            <span>Afiş Yok</span>
+                                        </div>
+                                    }
+                                </a>
+                                <span class="position-absolute top-0 end-0 bg-warning text-dark fw-bold m-2 px-2 py-1 rounded shadow-sm small">
+                                    ⭐ @movie.Vote_Average.ToString("0.0")
+                                </span>
+                            </div>
+                            <div class="card-body p-2 bg-light text-center">
+                                <a href="/Movie/Details/@movie.Id" class="text-decoration-none">
+                                    <h6 class="card-title fw-bold text-truncate mb-2 text-dark" title="@movie.Title">@movie.Title</h6>
+                                </a>
+                                <button class="btn btn-outline-primary btn-xs w-100 rounded-pill fw-semibold btn-sm"
+                                        onclick="addToShelf('@movie.Id', '@movie.Title.Replace("'", "\\'")', '@movie.Poster_Path')">
+                                    ➕ Rafa Ekle
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <!-- Animasyon için Daha Fazla (Genre ID: 16) -->
+                <div class="movie-row-item d-flex align-items-center">
+                    <div class="load-more-card" onclick="loadMoreMovies(16, this)">
+                        <div class="icon-circle"><span>❯</span></div>
+                        <small class="fw-bold text-muted d-block mt-2">Daha Fazla</small>
+                    </div>
+                </div>
             }
             else
             {
@@ -203,7 +294,6 @@
         -webkit-overflow-scrolling: touch;
     }
 
-        /* Tarayıcıların varsayılan çirkin kaydırma çubuklarını gizliyoruz */
         .movie-row-container::-webkit-scrollbar {
             display: none;
         }
@@ -227,9 +317,127 @@
             transform: translateY(-5px);
             box-shadow: 0 8px 16px rgba(0,0,0,0.2) !important;
         }
+
+    /* ── DAHA FAZLA OK BUTONU ÖZEL STİLLERİ ── */
+    .load-more-card {
+        width: 150px;
+        height: 320px; /* Film kartlarının toplam yüksekliğiyle dengeli durması için */
+        background: #fdfdfd;
+        border: 2px dashed #cbd5e1;
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-left: 5px;
+    }
+
+        .load-more-card:hover {
+            background: #f1f5f9;
+            border-color: #0d6efd; /* Bootstrap primary mavi rengi */
+            transform: scale(1.03);
+        }
+
+    .icon-circle {
+        width: 45px;
+        height: 45px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.06);
+        color: #0d6efd;
+        font-size: 18px;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+
+    .load-more-card:hover .icon-circle {
+        transform: translateX(5px);
+        background: #0d6efd;
+        color: white;
+    }
 </style>
 
 <script>
+    // Her kategorinin kendi sayfa takibini tutan nesne (Sayfa 2'den başlıyor)
+    const categoryPages = {};
+
+    function loadMoreMovies(genreId, buttonElement) {
+        if (!categoryPages[genreId]) {
+            categoryPages[genreId] = 2;
+        } else {
+            categoryPages[genreId]++;
+        }
+
+        const nextPage = categoryPages[genreId];
+        const iconCircle = buttonElement.querySelector('.icon-circle');
+
+        // Butonu animasyonlu yükleniyor simgesine çevir
+        iconCircle.innerHTML = `<span class="spinner-border spinner-border-sm" role="status"></span>`;
+
+        fetch(`/Home/GetMoreMovies?genreId=${genreId}&page=${nextPage}`)
+            .then(response => response.json())
+            .then(movies => {
+                if (movies && movies.length > 0) {
+                    movies.forEach(movie => {
+                        // C# tarafındaki veri modeli veya TMDB adlandırmalarını desteklemesi için
+                        const movieTitle = movie.title || movie.Title || "İsimsiz Film";
+                        const posterPath = movie.poster_Path || movie.poster_path || movie.Poster_Path || "";
+                        const voteAverage = movie.vote_Average || movie.vote_average || movie.Vote_Average || 0;
+                        const movieId = movie.id || movie.Id;
+
+                        // Güvenli başlık tırnaklama temizliği
+                        const safeTitle = movieTitle.replace(/'/g, "\\'");
+
+                        // Dinamik film kartı şablonu (Orijinal kart tasarımı ile birebir aynıdır)
+                        const movieHtml = `
+                                <div class="movie-row-item">
+                                    <div class="card h-100 shadow-sm border-0 rounded-3 overflow-hidden movie-card">
+                                        <div class="position-relative">
+                                            <a href="/Movie/Details/${movieId}">
+                                                ${posterPath
+                                ? `<img src="https://image.tmdb.org/t/p/w500${posterPath}" class="card-img-top" alt="${movieTitle}" style="height: 280px; object-fit: cover;">`
+                                : `<div class="bg-secondary d-flex align-items-center justify-content-center text-white" style="height: 280px;"><span>Afiş Yok</span></div>`
+                            }
+                                            </a>
+                                            <span class="position-absolute top-0 end-0 bg-warning text-dark fw-bold m-2 px-2 py-1 rounded shadow-sm small">
+                                                ⭐ ${parseFloat(voteAverage).toFixed(1)}
+                                            </span>
+                                        </div>
+                                        <div class="card-body p-2 bg-light text-center">
+                                            <a href="/Movie/Details/${movieId}" class="text-decoration-none">
+                                                <h6 class="card-title fw-bold text-truncate mb-2 text-dark" title="${movieTitle}">${movieTitle}</h6>
+                                            </a>
+                                            <button class="btn btn-outline-primary btn-xs w-100 rounded-pill fw-semibold btn-sm"
+                                                    onclick="addToShelf('${movieId}', '${safeTitle}', '${posterPath}')">
+                                                ➕ Rafa Ekle
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+
+                        // Kartı, "Daha Fazla" butonunun içinde olduğu `.movie-row-item` div'inin tam soluna yerleştirir
+                        buttonElement.parentElement.insertAdjacentHTML('beforebegin', movieHtml);
+                    });
+
+                    // Simgesini eski haline geri getir
+                    iconCircle.innerHTML = '❯';
+                } else {
+                    // Sayfa boş geldiyse, artık daha fazla film yok demektir; butonu kaldırır
+                    buttonElement.parentElement.remove();
+                }
+            })
+            .catch(error => {
+                console.error('Filmler getirilirken hata oluştu:', error);
+                iconCircle.innerHTML = '❯';
+            });
+    }
+
     function addToShelf(tmdbId, title, posterPath) {
         const movieData = {
             TmdbId: parseInt(tmdbId),

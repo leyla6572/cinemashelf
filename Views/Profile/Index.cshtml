@@ -55,11 +55,7 @@
             </div>
         </div>
 
-        <div class="mt-3 mt-md-2 d-flex gap-2">
-            <!-- 🌟 YENİ: Replik Ekleme Butonu -->
-            <button class="btn btn-sm btn-success rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#addQuoteModal">
-                <i class="bi bi-plus-circle me-1"></i> Replik Paylaş
-            </button>
+        <div class="mt-3 mt-md-2">
             <button class="btn btn-sm btn-outline-dark rounded-pill px-3"><i class="bi bi-pencil"></i> Düzenle</button>
         </div>
     </div>
@@ -78,7 +74,7 @@
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="allmovies-tab" data-bs-toggle="tab" data-bs-target="#allmovies-content" type="button" role="tab">
-                Tüm Filmleri (@totalMovies)
+                Tüm Filmlerim (@totalMovies)
             </button>
         </li>
         <li class="nav-item" role="presentation">
@@ -136,9 +132,10 @@
                                         }
                                     </a>
                                 </div>
-                                <div class="card-body p-2 bg-light text-center">
-                                    <a href="/Movie/Details/@movie.TmdbId" class="text-decoration-none">
-                                        <h6 class="card-title fw-semibold text-truncate text-dark mb-0 small" title="@movie.Title">@movie.Title</h6>
+                                <!-- DEĞİŞTİRİLECEK ALAN (BURAYI BUL) -->
+                                <div class="card-body p-2 bg-info text-white text-center">
+                                    <a href="/Movie/Details/@movie.TmdbId" class="text-decoration-none text-white">
+                                        <h6 class="card-title fw-semibold text-truncate mb-0 small" title="@movie.Title">@movie.Title</h6>
                                     </a>
                                 </div>
                             </div>
@@ -179,11 +176,11 @@
                                         }
                                     </a>
                                 </div>
-                                <div class="card-body p-2 bg-light text-center">
-                                    <a href="/Movie/Details/@movie.TmdbId" class="text-decoration-none">
-                                        <h6 class="card-title fw-semibold text-truncate text-dark mb-0 small" title="@movie.Title">@movie.Title</h6>
+                                <!-- DEĞİŞTİRİLECEK ALAN (BURAYI BUL) -->
+                                <div class="card-body p-2 bg-success text-white text-center">
+                                    <a href="/Movie/Details/@movie.TmdbId" class="text-decoration-none text-white">
+                                        <h6 class="card-title fw-semibold text-truncate mb-0 small" title="@movie.Title">@movie.Title</h6>
                                     </a>
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0 mt-1" style="font-size:0.65rem;">İzlendi</span>
                                 </div>
                             </div>
                         </div>
@@ -200,12 +197,18 @@
 
         <!-- 3. TÜM FİLMELER SEKMESİ -->
         <div class="tab-pane fade" id="allmovies-content" role="tabpanel">
-            @if (Model.UserMovies != null && Model.UserMovies.Any())
+            @if (Model?.UserMovies != null && Model.UserMovies.Any())
             {
                 <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3">
                     @foreach (var userMovie in Model.UserMovies)
                     {
                         var movie = userMovie.Movie;
+
+                        // 🌟 RENK AYRIMINI YAPAN DİNAMİK C# MANTIĞI
+                        var cardBackgroundClass = userMovie.Status == CinemaShelf.Models.WatchStatus.Watched ? "bg-success" : "bg-info";
+                        var badgeText = userMovie.Status == CinemaShelf.Models.WatchStatus.Watched ? "İzlendi" : "İzlenecek";
+                        var badgeClass = userMovie.Status == CinemaShelf.Models.WatchStatus.Watched ? "bg-success-subtle text-success border-success-subtle" : "bg-info-subtle text-info border-info-subtle";
+
                         <div class="col">
                             <div class="card h-100 shadow-sm border-0 rounded-3 overflow-hidden movie-shelf-card">
                                 <div class="position-relative">
@@ -222,11 +225,13 @@
                                         }
                                     </a>
                                 </div>
-                                <div class="card-body p-2 bg-light text-center">
-                                    <a href="/Movie/Details/@movie.TmdbId" class="text-decoration-none">
-                                        <h6 class="card-title fw-semibold text-truncate text-dark mb-0 small" title="@movie.Title">@movie.Title</h6>
+
+                                <div class="card-body p-2 @cardBackgroundClass text-white text-center">
+                                    <a href="/Movie/Details/@movie.TmdbId" class="text-decoration-none text-white">
+                                        <h6 class="card-title fw-semibold text-truncate mb-0 small" title="@movie.Title" style="font-size: 0.82rem;">@movie.Title</h6>
                                     </a>
                                 </div>
+
                             </div>
                         </div>
                     }
@@ -235,14 +240,14 @@
             else
             {
                 <div class="text-center py-5 text-muted">
-                    <p>Henüz rafınıza hiçbir film eklemediniz.</p>
+                    <p class="mb-0">Henüz profilinizde hiç film yok. 🎬</p>
                 </div>
             }
         </div>
 
         <!-- 4. YORUMLAR SEKMESİ -->
         <div class="tab-pane fade" id="reviews-content" role="tabpanel">
-            @if (Model.Reviews != null && Model.Reviews.Any())
+            @if (Model.Reviews!= null && Model.Reviews.Any())
             {
                 <div class="d-flex flex-column gap-3" style="max-width: 750px; margin: 0 auto;">
                     @foreach (var review in Model.Reviews.OrderByDescending(r => r.CreatedDate))
@@ -280,44 +285,91 @@
             }
         </div>
 
-        <!-- 🌟 5. YENİ: REPLİKLER SEKMESİ İÇERİĞİ (1000KİTAP ALINTI TARZI) -->
+        <!-- 🌟 5. YENİ: REPLİKLER SEKMESİ İÇERİĞİ (SOSYAL MEDYA TARZI GİRİŞ KUTUSU ENTEGRELİ) -->
         <div class="tab-pane fade" id="quotes-content" role="tabpanel">
-            @if (Model.MovieQuotes != null && Model.MovieQuotes.Any())
-            {
-                <div class="d-flex flex-column gap-3" style="max-width: 750px; margin: 0 auto;">
-                    @foreach (var quote in Model.MovieQuotes.OrderByDescending(q => q.CreatedDate))
-                    {
-                        <div class="card border-0 shadow-sm rounded-4 p-4 bg-white position-relative overflow-hidden">
-                            <!-- Süs Tırnak İşareti Arka Planı -->
-                 
+            <div class="d-flex flex-column gap-3" style="max-width: 750px; margin: 0 auto;">
 
-                            <!-- Alıntı İçeriği -->
-                            <figure class="mb-0">
-                                <blockquote class="blockquote fs-6 text-dark fw-medium lh-base italic-quote">
-                                    “@quote.Content”
-                                </blockquote>
-                                <figcaption class="blockquote-footer mt-2 mb-0 d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <a href="/Movie/Details/@quote.Movie?.TmdbId" class="text-decoration-none fw-semibold text-success hover-underline">
-                                            @quote.Movie?.Title
-                                        </a>
-                                    </div>
-                                    <small class="text-muted" style="font-size: 0.7rem;">
-                                        <i class="bi bi-clock me-1"></i> @quote.CreatedDate.ToString("dd MMM yyyy")
-                                    </small>
-                                </figcaption>
-                            </figure>
+                <!-- HIZLI REPLİK PAYLAŞMA ALANI (Giriş Kutusu) -->
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white mb-2">
+                    <div class="d-flex gap-3">
+                        <div class="bg-success text-dark d-flex align-items-center justify-content-center shadow-sm rounded-circle fw-bold flex-shrink-0" style="width: 42px; height: 42px; font-size: 1.1rem;">
+                            @Model.Username?.Substring(0, 1).ToUpper()
+                        </div>
+
+                        <div class="flex-grow-1">
+                            <!-- Sahte Giriş Kutusu (Tıklanınca formu açar) -->
+                            <div class="w-100 placeholder-box bg-light border rounded-pill px-3 py-2 text-muted small cursor-pointer border-light-subtle shadow-inner"
+                                 onclick="toggleQuoteBox()" id="quotePlaceholder">
+                                Unutulmaz bir film repliği paylaş...
+                            </div>
+
+                            <!-- Gerçek Veri Giriş Formu (Başlangıçta Gizli) -->
+                            <div id="realQuoteForm" class="d-none">
+                                <!-- Film Seçim Alanı -->
+                                <div class="mb-2">
+                                    <select class="form-select form-select-sm border border-light-subtle rounded-3 text-muted" id="quoteMovieId" style="font-size: 0.8rem;">
+                                        <option value="">-- Rafınızdan Bir Film Seçin --</option>
+                                        @if (ViewBag.UserMoviesList != null)
+                                        {
+                                            foreach (var m in (List<CinemaShelf.Models.Movie>)ViewBag.UserMoviesList)
+                                            {
+                                                <option value="@m.Id">@m.Title</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                                <!-- Replik İçerik Alanı -->
+                                <div class="mb-2">
+                                    <textarea class="form-control form-control-sm border border-light-subtle rounded-3 text-dark p-2"
+                                              id="quoteContent" rows="3" placeholder="Hafızanıza kazınan o güzel cümleyi buraya ekleyin..." style="font-size: 0.85rem; resize: none;"></textarea>
+                                </div>
+                                <!-- İşlem Butonları -->
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button type="button" class="btn btn-sm btn-light border rounded-pill px-3 py-1" onclick="toggleQuoteBox()" style="font-size: 0.75rem;">İptal</button>
+                                    <button type="button" class="btn btn-sm btn-success rounded-pill px-3 py-1 fw-medium" onclick="submitNewQuote()" style="font-size: 0.75rem;">Paylaş</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PAYLAŞILAN REPLİKLERİN LİSTESİ -->
+                <div class="d-flex flex-column gap-3" id="quotesListContainer">
+                    @if (Model.MovieQuotes != null && Model.MovieQuotes.Any())
+                    {
+                        foreach (var quote in Model.MovieQuotes.OrderByDescending(q => q.CreatedDate))
+                        {
+                            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white position-relative overflow-hidden">
+                                
+
+                                <figure class="mb-0">
+                                    <blockquote class="blockquote fs-6 text-dark fw-medium lh-base italic-quote">
+                                        “@quote.Content”
+                                    </blockquote>
+                                    <figcaption class=" mt-2 mb-0 d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <a href="/Movie/Details/@quote.Movie?.TmdbId" class="text-decoration-none fw-semibold text-success hover-underline" style="font-size: 0.82rem; margin-left: -4px;">
+                                                @quote.Movie?.Title
+                                            </a>
+                                        </div>
+                                        <small class="text-muted" style="font-size: 0.7rem;">
+                                            <i class="bi bi-clock me-1"></i> @quote.CreatedDate.ToString("dd MMM yyyy")
+                                        </small>
+                                    </figcaption>
+                                </figure>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center py-5 text-muted bg-white rounded-4 shadow-sm">
+                            <p class="mb-1"><i class="bi bi-quote fs-3 d-block mb-1 text-success"></i> Henüz bir film repliği paylaşmadınız.</p>
+                            <small class="text-muted">İlk repliğinizi yukarıdaki kutuyu kullanarak hemen paylaşın! 🎬</small>
                         </div>
                     }
                 </div>
-            }
-            else
-            {
-                <div class="text-center py-5 text-muted">
-                    <p class="mb-2"><i class="bi bi-quote fs-3 d-block mb-1 text-success"></i> Henüz bir film repliği paylaşmadınız.</p>
-                    <small class="text-muted">Unutulmaz film repliklerini profilinize eklemek için yukarıdaki "Replik Paylaş" butonunu kullanın! 🎬</small>
-                </div>
-            }
+
+            </div>
         </div>
 
     </div>
@@ -358,49 +410,26 @@
     </div>
 </div>
 
-<!-- ==================== 🌟 YENİ: REPLİK EKLEME MODALI ==================== -->
-<div class="modal fade" id="addQuoteModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow rounded-4">
-            <div class="modal-header border-0 bg-light rounded-top-4 py-3">
-                <h5 class="modal-title fw-bold text-dark small d-flex align-items-center">
-                    <i class="bi bi-quote text-success me-1"></i>
-                    <span>Unutulmaz Bir Replik Paylaş</span>
-                    <span class="text-success ms-1 fs-5" style="font-family: Georgia, serif; display: inline-block; vertical-align: middle; line-height: 1; margin-top: 8px;">”</span>
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-4">
-                <!-- Film Seçim Alanı -->
-                <div class="mb-3">
-                    <label class="form-label text-dark fw-semibold small mb-2">Hangi Filmin Repliği?</label>
-                    <select class="form-select form-select-sm border rounded-3 text-muted" id="quoteMovieId">
-                        <option value="">-- Rafınızdan Bir Film Seçin --</option>
-                        @if (ViewBag.UserMoviesList != null)
-                        {
-                            foreach (var m in (List<CinemaShelf.Models.Movie>)ViewBag.UserMoviesList)
-                            {
-                                <option value="@m.Id">@m.Title</option>
-                            }
-                        }
-                    </select>
-                </div>
-                <!-- Replik Metni -->
-                <div class="mb-1">
-                    <label class="form-label text-dark fw-semibold small mb-2">Replik İçeriği:</label>
-                    <textarea class="form-control form-control-sm border rounded-3 text-muted" id="quoteContent" rows="4" placeholder="Filmin içinden hafızanıza kazınan o güzel cümleyi buraya ekleyin..."></textarea>
-                </div>
-            </div>
-            <div class="modal-footer border-0 pt-0 px-4 pb-4">
-                <button type="button" class="btn btn-sm btn-light border rounded-pill px-4" data-bs-dismiss="modal">İptal</button>
-                <button type="button" class="btn btn-sm btn-success rounded-pill px-4 fw-medium" onclick="submitNewQuote()">Paylaş</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- ==================== JAVASCRIPT & AJAX ALANI ==================== -->
 <script>
+    // 🌟 Hızlı Giriş Kutusu Açma/Kapatma Tetikleyicisi
+    function toggleQuoteBox() {
+        const placeholder = document.getElementById('quotePlaceholder');
+        const realForm = document.getElementById('realQuoteForm');
+        const textarea = document.getElementById('quoteContent');
+
+        if (realForm.classList.contains('d-none')) {
+            placeholder.classList.add('d-none');
+            realForm.classList.remove('d-none');
+            textarea.focus();
+        } else {
+            realForm.classList.add('d-none');
+            placeholder.classList.remove('d-none');
+            document.getElementById('quoteMovieId').value = "";
+            textarea.value = "";
+        }
+    }
+
     function openWatchedModal(movieId, movieTitle) {
         document.getElementById('modalMovieId').value = movieId;
         document.getElementById('modalMovieTitle').innerText = movieTitle;
@@ -438,7 +467,7 @@
             });
     }
 
-    // 🌟 YENİ: Replik Gönderme AJAX Fonksiyonu
+    // 🌟 Replik Gönderme AJAX Fonksiyonu
     function submitNewQuote() {
         const movieId = document.getElementById('quoteMovieId').value;
         const content = document.getElementById('quoteContent').value;
@@ -461,7 +490,7 @@
             .then(response => response.json())
             .then(result => {
                 if (result.success) {
-                    location.reload(); // Sayfayı yenileyip yeni repliği gösteriyoruz
+                    location.reload();
                 } else {
                     alert(result.message);
                 }
@@ -471,6 +500,16 @@
 </script>
 
 <style>
+    /* Hızlı Giriş Kutusu Sınıfları */
+    .cursor-pointer {
+        cursor: pointer;
+    }
+
+    .placeholder-box:hover {
+        background-color: #e9ecef !important;
+        transition: background 0.2s ease;
+    }
+
     .profile-avatar {
         width: 90px;
         height: 90px;

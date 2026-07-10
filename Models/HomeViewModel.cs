@@ -8,5 +8,6 @@ namespace CinemaShelf.Models
         public List<TmdbMovieResult> ComedyMovies { get; set; } = new();
         public List<TmdbMovieResult> DramaMovies { get; set; } = new();
         public List<TmdbMovieResult> SciFiMovies { get; set; } = new();
+        public List<CinemaShelf.Models.TmdbMovieResult>? AnimationMovies { get; set; }
     }
 }
