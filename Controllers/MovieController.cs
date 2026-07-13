@@ -33,7 +33,7 @@ namespace CinemaShelf.Controllers
                 return NotFound("Film API'den yüklenemedi.");
             }
 
-            
+
             // 2. Şimdi bizim yerel veritabanımıza gidip, bu filme yapılmış yorumları VE BEĞENİLERİ çekiyoruz
             var localMovie = await _context.Movies
                 .Include(m => m.Reviews)
@@ -166,11 +166,15 @@ namespace CinemaShelf.Controllers
         {
             public int ReviewId { get; set; }
         }
+
+       
     }
 
-    // JS'den gelen yorum verisini karşılayacak yardımcı model
-    public class ReviewInputModel
-    {
+
+
+        // JS'den gelen yorum verisini karşılayacak yardımcı model
+        public class ReviewInputModel {
+    
         public int TmdbId { get; set; }
         public string Content { get; set; } = string.Empty;
         public int Rating { get; set; }

@@ -58,6 +58,21 @@ namespace CinemaShelf.Data
                 .WithMany(r => r.ReviewLikes)
                 .HasForeignKey(rl => rl.ReviewId)
                 .OnDelete(DeleteBehavior.Restrict); // 🌟 Çatışmayı önleyen kritik satır
+
+            base.OnModelCreating(modelBuilder);
+
+            // 🌟 Takipleşme Sistemi (Follow) İlişki Ayarları
+            modelBuilder.Entity<Follow>()
+                .HasOne(f => f.Follower)
+                .WithMany(u => u.Followings)
+                .HasForeignKey(f => f.FollowerId)
+                .OnDelete(DeleteBehavior.Restrict); // Döngüsel silmeyi engeller
+
+            modelBuilder.Entity<Follow>()
+                .HasOne(f => f.Following)
+                .WithMany(u => u.Followers)
+                .HasForeignKey(f => f.FollowingId)
+                .OnDelete(DeleteBehavior.Restrict); // Döngüsel silmeyi engeller
         }
         public DbSet<Review> Reviews { get; set; }
 

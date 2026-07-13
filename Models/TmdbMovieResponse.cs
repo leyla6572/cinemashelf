@@ -17,4 +17,5 @@
         public string? Release_Date { get; set; } // Vizyon tarihi
         public double Vote_Average { get; set; } // Film puanı
     }
+
 }

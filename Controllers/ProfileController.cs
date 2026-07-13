@@ -147,7 +147,8 @@ namespace CinemaShelf.Controllers
                     return Json(new { success = false, message = "Geçersiz film durumu!" });
                 }
 
-                if (input.NewStatus == "Watched" && (!string.IsNullOrEmpty(input.Comment) || input.Rating > 0))
+                // DEĞİŞEN ALAN BAŞLANGICI
+                if (input.NewStatus == "Watched" && !string.IsNullOrWhiteSpace(input.Comment))
                 {
                     var existingReview = await _context.Reviews
                         .FirstOrDefaultAsync(r => r.AppUserId == userId && r.MovieId == input.MovieId);
@@ -158,13 +159,14 @@ namespace CinemaShelf.Controllers
                         {
                             AppUserId = userId,
                             MovieId = input.MovieId,
-                            Content = input.Comment ?? "İzledim olarak işaretlendi.",
+                            Content = input.Comment.Trim(), // Başındaki ve sonundaki gereksiz boşlukları temizler
                             Rating = input.Rating,
                             CreatedDate = DateTime.Now
                         };
                         _context.Reviews.Add(newReview);
                     }
                 }
+                // DEĞİŞEN ALAN BİTİŞİ
 
                 await _context.SaveChangesAsync();
                 return Json(new { success = true, message = "Film durumu başarıyla güncellendi!" });
@@ -174,7 +176,6 @@ namespace CinemaShelf.Controllers
                 return Json(new { success = false, message = "Hata: " + ex.Message });
             }
         }
-
         // ==================== 🌟 YENİ: YENİ REPLİK KAYDETME (AJAX METODU) ====================
         [HttpPost]
         public async Task<IActionResult> AddQuote([FromBody] QuoteCreateInputModel input)
@@ -270,7 +271,48 @@ namespace CinemaShelf.Controllers
             public int MovieId { get; set; }
             public string Content { get; set; } = string.Empty;
         }
+
+        // GET veya POST: /User/FollowUser
+        public async Task<IActionResult> FollowUser(int targetUserId)
+        {
+            // 1. Oturum açmış olan mevcut kullanıcının ID'sini almalısın. 
+            // Projende Session mı kullanıyorsun yoksa Cookie/Identity mi? 
+            // Şimdilik örnek olması için "currentUserId" değişkeni olarak tanımlıyorum:
+            int currentUserId = int.Parse(HttpContext.Session.GetString("UserId") ?? "0");
+
+            if (currentUserId == 0 || currentUserId == targetUserId)
+            {
+                return RedirectToAction("Index", "Home"); // Geçersiz işlem durumunda ana sayfaya at
+            }
+
+            // Daha önce takip etmiş mi kontrol edelim
+            var existingFollow = await _context.Follows
+                .FirstOrDefaultAsync(f => f.FollowerId == currentUserId && f.FollowingId == targetUserId);
+
+            if (existingFollow != null)
+            {
+                // Eğer zaten takip ediyorsa: Takipten ÇIK
+                _context.Follows.Remove(existingFollow);
+            }
+            else
+            {
+                // Eğer takip etmiyorsa: TAKİP ET
+                var newFollow = new Follow
+                {
+                    FollowerId = currentUserId,
+                    FollowingId = targetUserId,
+                    FollowedDate = DateTime.Now
+                };
+                await _context.Follows.AddAsync(newFollow);
+            }
+
+            await _context.SaveChangesAsync();
+
+            // İşlem bittikten sonra gelinen profile geri dön
+            return RedirectToAction("Profile", new { id = targetUserId });
+        }
     }
+
 
 
     public class MovieInputModel

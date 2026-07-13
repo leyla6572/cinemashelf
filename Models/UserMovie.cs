@@ -34,5 +34,6 @@ namespace CinemaShelf.Models
         public int? Rating { get; set; }
 
         public DateTime AddedDate { get; set; } = DateTime.Now;
+       
     }
 }
