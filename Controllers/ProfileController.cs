@@ -17,6 +17,7 @@ namespace CinemaShelf.Controllers
             _context = context;
         }
 
+       
         [Authorize]
         public async Task<IActionResult> Index()
         {
@@ -27,13 +28,13 @@ namespace CinemaShelf.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            // 2. Kullanıcıyı; rafı, yorumları VE yeni eklediğimiz film replikleriyle birlikte çekiyoruz
+            // 2. Kullanıcıyı ve ilişkili verilerini çekiyoruz
             var user = await _context.AppUsers
                 .Include(u => u.UserMovies)
                     .ThenInclude(um => um.Movie)
                 .Include(u => u.Reviews)
                     .ThenInclude(r => r.Movie)
-                .Include(u => u.MovieQuotes) // 🌟 YENİ: Replikleri dahil ediyoruz
+                .Include(u => u.MovieQuotes)
                     .ThenInclude(mq => mq.Movie)
                 .FirstOrDefaultAsync(u => u.Id == userId);
 
@@ -42,24 +43,131 @@ namespace CinemaShelf.Controllers
                 return NotFound("Kullanıcı bulunamadı.");
             }
 
-            // Filmleri durumlarına göre (WatchStatus) ayırıp ViewBag'lere teslim ediyoruz
-            ViewBag.Watchlist = user.UserMovies?.Where(um => um.Status == WatchStatus.Watchlist).ToList() ?? new List<UserMovie>();
-            ViewBag.Watched = user.UserMovies?.Where(um => um.Status == WatchStatus.Watched).ToList() ?? new List<UserMovie>();
+            // Filmleri durumlarına göre ayırıyoruz
+            var watchlistMovies = user.UserMovies?.Where(um => um.Status == WatchStatus.Watchlist).ToList() ?? new List<UserMovie>();
+            var watchedMovies = user.UserMovies?.Where(um => um.Status == WatchStatus.Watched).ToList() ?? new List<UserMovie>();
 
-            // Dinamik istatistikler ve profil sekmelerinin sayaçları
+            ViewBag.Watchlist = watchlistMovies;
+            ViewBag.Watched = watchedMovies;
+
+            // Sayaçlar
             ViewBag.TotalMovies = user.UserMovies?.Count ?? 0;
-            ViewBag.WatchlistCount = user.UserMovies?.Count(um => um.Status == WatchStatus.Watchlist) ?? 0;
-            ViewBag.WatchedCount = user.UserMovies?.Count(um => um.Status == WatchStatus.Watched) ?? 0;
+            ViewBag.WatchlistCount = watchlistMovies.Count;
+            ViewBag.WatchedCount = watchedMovies.Count;
             ViewBag.ReviewsCount = user.Reviews?.Count ?? 0;
-            ViewBag.QuotesCount = user.MovieQuotes?.Count ?? 0; // 🌟 YENİ: Replik sayısı sayacı
-
-            // Replik ekleme modalında kullanıcının rafındaki (seçebileceği) filmleri listelemek için gönderiyoruz
+            ViewBag.QuotesCount = user.MovieQuotes?.Count ?? 0;
             ViewBag.UserMoviesList = user.UserMovies?.Select(um => um.Movie).Where(m => m != null).ToList() ?? new List<Movie>();
 
-            // View'a ana model olarak 'user' nesnesini gönderiyoruz
+            // 🌟 TMDB API ENTEGRASYONU BAŞLIYOR 🌟
+            var genreStats = new Dictionary<string, int>();
+            var directorStats = new Dictionary<string, int>();
+            int totalRuntime = 0;
+
+            using (var client = new HttpClient())
+            {
+                // Kendi TMDB API Key'ini buraya yazmalısın!
+                string apiKey = "be4023c1d851d362678d76d5abe82a07";
+
+                foreach (var userMovie in watchedMovies)
+                {
+                    if (userMovie.Movie != null)
+                    {
+                        try
+                        {
+                            // TMDB'den film detaylarını (ve credits/ekip bilgisini) Türkçe olarak istiyoruz
+                            var url = $"https://api.themoviedb.org/3/movie/{userMovie.Movie.TmdbId}?api_key={apiKey}&append_to_response=credits&language=tr-TR";
+                            var response = await client.GetFromJsonAsync<TmdbMovieDetailDto>(url);
+
+                            if (response != null)
+                            {
+                                // A. Süreyi topluyoruz
+                                totalRuntime += response.Runtime ?? 0;
+
+                                // B. Türleri listeye ekliyoruz
+                                // B. Türleri sitemizin 5 ana kategorisine eşleyip ekliyoruz
+                                if (response.Genres != null)
+                                {
+                                    string? selectedGenre = null;
+
+                                    foreach (var genre in response.Genres)
+                                    {
+                                        string originalGenre = genre.Name.ToLower();
+
+                                        if (originalGenre.Contains("aksiyon") || originalGenre.Contains("macera") || originalGenre.Contains("korku") || originalGenre.Contains("gerilim") || originalGenre.Contains("savaş"))
+                                        {
+                                            selectedGenre = "Aksiyon";
+                                        }
+                                        else if (originalGenre.Contains("komedi") || originalGenre.Contains("romantik") || originalGenre.Contains("romantik komedi"))
+                                        {
+                                            selectedGenre = "Komedi";
+                                        }
+                                        else if (originalGenre.Contains("dram") || originalGenre.Contains("belgesel") || originalGenre.Contains("tarih") || originalGenre.Contains("suç"))
+                                        {
+                                            selectedGenre = "Dram";
+                                        }
+                                        else if (originalGenre.Contains("bilim-kurgu") || originalGenre.Contains("bilim kurgu") || originalGenre.Contains("fantastik") || originalGenre.Contains("gizem"))
+                                        {
+                                            selectedGenre = "Bilim-Kurgu";
+                                        }
+                                        else if (originalGenre.Contains("animasyon") || originalGenre.Contains("aile") || originalGenre.Contains("anime"))
+                                        {
+                                            selectedGenre = "Animasyon & Anime";
+                                        }
+
+                                        // 🌟 SIHİRLİ DOKUNUŞ: Film için ilk eşleşen kategoriyi bulduğumuz an döngüden çıkıyoruz!
+                                        // Böylece bir film sadece tek bir kategoriye yazılacak.
+                                        if (!string.IsNullOrEmpty(selectedGenre))
+                                        {
+                                            break;
+                                        }
+                                    }
+
+                                    // Seçilen tek kategoriyi istatistiğe ekle
+                                    if (!string.IsNullOrEmpty(selectedGenre))
+                                    {
+                                        if (genreStats.ContainsKey(selectedGenre))
+                                            genreStats[selectedGenre]++;
+                                        else
+                                            genreStats[selectedGenre] = 1;
+                                    }
+                                }
+
+                                // C. Yönetmeni bulup ekliyoruz (Crew içinde job == "Director" olan)
+                                var director = response.Credits?.Crew?.FirstOrDefault(c => c.Job == "Director")?.Name;
+                                if (!string.IsNullOrEmpty(director))
+                                {
+                                    if (directorStats.ContainsKey(director))
+                                        directorStats[director]++;
+                                    else
+                                        directorStats[director] = 1;
+                                }
+                            }
+                        }
+                        catch
+                        {
+                            // Herhangi bir filmde API hatası alınırsa uygulamanın çökmemesi için pas geçiyoruz
+                        }
+                    }
+                }
+            }
+
+            // İstatistikleri ViewBag'lere aktarıyoruz
+            ViewBag.GenreStats = genreStats.OrderByDescending(x => x.Value).Take(10).ToList();
+            ViewBag.DirectorStats = directorStats.OrderByDescending(x => x.Value).Take(10).ToList();
+
+            // 🌟 YILLARA GÖRE İZLEME İSTATİSTİKLERİ (Gerçek Süreyle Birlikte)
+            ViewBag.YearlyStats = watchedMovies
+                .GroupBy(um => um.AddedDate.Year)
+                .Select(g => new {
+                    Year = g.Key,
+                    MovieCount = g.Count(),
+                    TotalMinutes = totalRuntime // API'den gelen gerçek toplam süreleri yazdırıyoruz
+                })
+                .OrderByDescending(g => g.Year)
+                .ToList();
+
             return View(user);
         }
-
         // ==================== KİŞİSEL RAFA FİLM EKLEME (AJAX METODU) ====================
         [HttpPost]
         public async Task<IActionResult> AddToUserShelf([FromBody] MovieInputModel input)
@@ -322,4 +430,26 @@ namespace CinemaShelf.Controllers
         public string? PosterPath { get; set; }
     }
 
+}
+public class TmdbMovieDetailDto
+{
+    public List<TmdbGenreDto>? Genres { get; set; }
+    public int? Runtime { get; set; }
+    public TmdbCreditsDto? Credits { get; set; }
+}
+
+public class TmdbGenreDto
+{
+    public string Name { get; set; } = string.Empty;
+}
+
+public class TmdbCreditsDto
+{
+    public List<TmdbCrewDto>? Crew { get; set; }
+}
+
+public class TmdbCrewDto
+{
+    public string Name { get; set; } = string.Empty;
+    public string Job { get; set; } = string.Empty; // "Director" olanı aratacağız
 }

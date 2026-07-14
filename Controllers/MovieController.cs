@@ -166,21 +166,55 @@ namespace CinemaShelf.Controllers
         {
             public int ReviewId { get; set; }
         }
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> RemoveFromShelf(int tmdbId)
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdString, out int userId))
+            {
+                return Json(new { success = false, message = "Oturum açık değil." });
+            }
 
-       
+            try
+            {
+                // Kullanıcının rafındaki ilgili filmi TMDB ID üzerinden buluyoruz
+                var userMovie = await _context.UserMovies
+                    .Include(um => um.Movie)
+                    .FirstOrDefaultAsync(um => um.AppUserId == userId && um.Movie.TmdbId == tmdbId);
+
+                if (userMovie != null)
+                {
+                    // 🌟 Veritabanından kalıcı olarak siliyoruz
+                    _context.UserMovies.Remove(userMovie);
+                    await _context.SaveChangesAsync(); // Değişiklikleri veritabanına işledik
+
+                    return Json(new { success = true, message = "Film başarıyla raftan kaldırıldı." });
+                }
+
+                return Json(new { success = false, message = "Film rafınızda bulunamadı." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Hata oluştu: " + ex.Message });
+            }
+        }
+
     }
 
 
 
-        // JS'den gelen yorum verisini karşılayacak yardımcı model
-        public class ReviewInputModel {
-    
+    // JS'den gelen yorum verisini karşılayacak yardımcı model
+    public class ReviewInputModel
+    {
+
         public int TmdbId { get; set; }
         public string Content { get; set; } = string.Empty;
         public int Rating { get; set; }
         public string? MovieTitle { get; set; } // Otomatik kayıt için başlığı da alıyoruz
         public string? PosterPath { get; set; }  // Otomatik kayıt için afişi de alıyoruz
     }
+
 
 
 }
