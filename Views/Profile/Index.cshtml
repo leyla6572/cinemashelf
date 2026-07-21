@@ -164,13 +164,22 @@
         </div>
 
         <div class="tab-pane fade" id="watched-content" role="tabpanel">
+            <!-- Sadece Arama Kutusu -->
+            <div class="mb-3 pt-2">
+                <div class="col-md-5 col-lg-4">
+                    <div class="input-group input-group-sm shadow-sm">
+                        <span class="input-group-text bg-white border-secondary-subtle">🔍</span>
+                        <input type="text" id="movie-search-input" class="form-control border-secondary-subtle" placeholder="İzlediğiniz filmlerde arayın...">
+                    </div>
+                </div>
+            </div>
             @if (ViewBag.Watched != null && ((List<CinemaShelf.Models.UserMovie>)ViewBag.Watched).Any())
             {
                 <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3">
                     @foreach (var userMovie in (List<CinemaShelf.Models.UserMovie>)ViewBag.Watched)
                     {
                         var movie = userMovie.Movie;
-                        <div class="col">
+                        <div class="col watched-movie-card">
                             <div class="card h-100 shadow-sm border-0 rounded-3 overflow-hidden movie-shelf-card">
                                 <div class="position-relative">
                                     <a href="/Movie/Details/@movie.TmdbId">
@@ -199,7 +208,7 @@
                 <hr class="my-5" /> <div class="row">
                     <div class="col-md-6">
 
-                        <div class="card shadow-sm mb-4 border-0">
+                        <div class="card shadow-sm mb-4 border border-secondary-subtle" style="border-width: 1.5px !important;">
                             <div class="card-body">
                                 <h5 class="card-title fw-bold text-dark mb-3" style="font-size: 1.1rem;">Türlerine Göre İzledikleri</h5>
                                 <ol class="list-group list-group-numbered list-group-flush" style="padding-left: 0;">
@@ -223,9 +232,9 @@
                             </div>
                         </div>
 
-                        <div class="card shadow-sm mb-4 border-0">
+                        <div class="card shadow-sm mb-4 border border-secondary-subtle" style="border-width: 1.5px !important;">
                             <div class="card-body">
-                                <h5 class="card-title fw-bold text-dark mb-3" style="font-size: 1.1rem;">Yönetmenlerine Göre İzledikleri</h5>
+                                <h5 class="card-title fw-bold text-dark mb-3" style="font-size: 1.1rem;">Türlerine Göre İzledikleri</h5>
                                 <ol class="list-group list-group-numbered list-group-flush" style="padding-left: 0;">
                                     @if (ViewBag.DirectorStats != null && ((List<KeyValuePair<string, int>>)ViewBag.DirectorStats).Any())
                                     {
@@ -663,6 +672,38 @@
             })
             .catch(err => console.error("Hata:", err));
     }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const searchInput = document.getElementById("movie-search-input");
+
+        if (searchInput) {
+            searchInput.addEventListener("input", function (e) {
+                // Arama metnini al ve Türkçe karakterleri standardize et
+                let searchTerm = e.target.value.toLowerCase().trim()
+                    .replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u')
+                    .replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c');
+
+                // "İzlediklerim" içindeki tüm film sütunlarını yakala
+                const movieCards = document.querySelectorAll("#watched-content .watched-movie-card");
+
+                movieCards.forEach(function (card) {
+                    // Kartın içindeki film adını al
+                    let titleElement = card.querySelector("h6");
+                    let title = titleElement ? titleElement.innerText.toLowerCase() : "";
+
+                    title = title.replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u')
+                        .replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c');
+
+                    // Eşleşme kontrolü
+                    if (title.includes(searchTerm)) {
+                        card.style.display = ""; // Göster
+                    } else {
+                        card.style.display = "none"; // Gizle
+                    }
+                });
+            });
+        }
+    });
 </script>
 
 <style>
