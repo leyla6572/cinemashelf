@@ -541,29 +541,71 @@
             <div class="modal-body p-4">
                 <!-- 1. DEĞİŞİKLİK: enctype="multipart/form-data" eklendi -->
                 <form action="/Profile/UpdateProfile" method="post" enctype="multipart/form-data">
+                    <!-- KULLANICI ADI ALANI (Dinamik Kontrollü) -->
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Kullanıcı Adı</label>
-                        <input type="text" class="form-control" name="Username" value="@Model.Username" required>
+                        <label for="usernameInput" class="form-label small fw-semibold mb-1">Kullanıcı Adı</label>
+                        <input type="text"
+                               class="form-control"
+                               id="usernameInput"
+                               name="Username"
+                               value="@Model?.Username"
+                               required
+                               oninput="validateProfileForm()" />
+                        <!-- Hata Mesajı Alanı -->
+                        <div id="usernameError" class="invalid-feedback small">
+                            Kullanıcı adı boş bırakılamaz!
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-semibold">E-posta Adresi</label>
                         <input type="email" class="form-control" name="Email" value="@Model.Email" required>
                     </div>
+                    <!-- BİYOGRAFİ VE KARAKTER SAYACI ALANI -->
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Biyografi (Bio)</label>
-                        <textarea class="form-control" name="Bio" rows="3" placeholder="Kendinizden bahsedin...">@Model.Bio</textarea>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label for="bioInput" class="form-label small fw-semibold mb-0">Biyografi (Bio)</label>
+                            <!-- Karakter Sayacı -->
+                            <span id="bioCharCounter" class="badge bg-light text-muted border fw-normal" style="font-size: 0.75rem;">
+                                0 / 100
+                            </span>
+                        </div>
+
+                        <textarea class="form-control"
+                                  id="bioInput"
+                                  name="Bio"
+                                  rows="3"
+                                  maxlength="100"
+                                  placeholder="Kendinizden bahsedin..."
+                                  oninput="updateBioCounter()">@Model?.Bio</textarea>
                     </div>
 
                     <!-- 2. DEĞİŞİKLİK: type="text" yerine type="file" yapıldı -->
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold">Profil Resmi Seç</label>
-                        <input type="file" class="form-control" name="ProfilePictureFile" accept="image/*">
-                        <div class="form-text small">Yalnızca .jpg, .jpeg veya .png formatında görseller seçiniz.</div>
+                    <!-- RESİM SEÇME VE ANLIK ÖNİZLEME ALANI -->
+                    <div class="mb-3 text-center">
+                        <!-- Seçilen Resmin Anlık Görüneceği Daire -->
+                        <div class="position-relative d-inline-block mb-2">
+                            <img id="imagePreview"
+                                 src="@(string.IsNullOrEmpty(Model?.ProfilePicture) ? "/uploads/default.png" : Model.ProfilePicture)"
+                                 class="rounded-circle shadow-sm object-fit-cover border"
+                                 style="width: 100px; height: 100px;"
+                                 alt="Profil Önizleme" />
+                        </div>
+
+                        <div>
+                            <label for="profileImageInput" class="form-label small fw-semibold d-block text-start">Profil Resmi Seç</label>
+                            <input type="file"
+                                   class="form-control"
+                                   id="profileImageInput"
+                                   name="ProfilePictureFile"
+                                   accept="image/*"
+                                   onchange="previewProfileImage(this)">
+                            <div class="form-text small text-start">Yalnızca .jpg, .jpeg veya .png formatında görseller seçiniz.</div>
+                        </div>
                     </div>
 
                     <div class="d-flex justify-content-end gap-2 pt-2">
                         <button type="button" class="btn btn-light rounded-3" data-bs-dismiss="modal">İptal</button>
-                        <button type="submit" class="btn btn-primary rounded-3 px-4">Kaydet</button>
+                        <button type="submit" id="saveProfileBtn" class="btn btn-primary rounded-3 px-4">Kaydet</button>
                     </div>
                 </form>
             </div>
@@ -816,6 +858,71 @@
                         });
                 });
             }
+        });
+
+        function previewProfileImage(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+
+                reader.onload = function (e) {
+                    // Seçilen resmi anında canlı önizleme kutusuna yansıtır
+                    document.getElementById('imagePreview').src = e.target.result;
+                }
+
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function updateBioCounter() {
+            const bioInput = document.getElementById('bioInput');
+            const counter = document.getElementById('bioCharCounter');
+            if (!bioInput || !counter) return;
+
+            const maxLength = 100; // Sınırı 100 yaptık
+            const currentLength = bioInput.value.length;
+
+            counter.textContent = `${currentLength} / ${maxLength}`;
+
+            // 85 karaktere ulaşınca sarı, 100'e ulaşınca kırmızı rozet
+            if (currentLength >= maxLength) {
+                counter.className = "badge bg-danger text-white fw-normal";
+            } else if (currentLength >= 85) {
+                counter.className = "badge bg-warning text-dark fw-normal";
+            } else {
+                counter.className = "badge bg-light text-muted border fw-normal";
+            }
+        }
+
+
+        // Form doğrulama fonksiyonu
+        function validateProfileForm() {
+            const usernameInput = document.getElementById('usernameInput');
+            const saveBtn = document.getElementById('saveProfileBtn');
+            const errorDiv = document.getElementById('usernameError');
+
+            if (!usernameInput || !saveBtn) return;
+
+            // Kullanıcı adının başındaki/sonundaki boşlukları temizleyip kontrol et
+            const usernameValue = usernameInput.value.trim();
+
+            if (usernameValue === "") {
+                // Hatalı durum: Kutuyu kırmızı yap, uyarıyı göster, butonu kilitle
+                usernameInput.classList.add('is-invalid');
+                usernameInput.classList.remove('is-valid');
+                if (errorDiv) errorDiv.style.display = 'block';
+                saveBtn.disabled = true;
+            } else {
+                // Geçerli durum: Kutuyu yeşil yap, uyarıyı gizle, butonu aç
+                usernameInput.classList.remove('is-invalid');
+                usernameInput.classList.add('is-valid');
+                if (errorDiv) errorDiv.style.display = 'none';
+                saveBtn.disabled = false;
+            }
+        }
+
+        // Modal her açıldığında ve sayfa yüklendiğinde ilk kontrolü yap
+        document.addEventListener("DOMContentLoaded", function () {
+            validateProfileForm();
         });
     </script>
 }
