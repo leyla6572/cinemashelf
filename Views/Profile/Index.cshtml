@@ -15,9 +15,24 @@
 
     <!-- ==================== ÜST PROFİL KARTI ==================== -->
     <div class="d-flex flex-column flex-md-row align-items-center align-items-md-start gap-4 mb-4">
-        <div class="profile-avatar bg-success text-dark d-flex align-items-center justify-content-center shadow-sm">
-            <span class="fw-bold">@Model.Username?.Substring(0, 1).ToUpper()</span>
-        </div>
+        <!-- PROFİL AVATAR / RESİM ALANI -->
+        @{
+            var profilePic = Model?.ProfilePicture;
+        }
+
+        @if (!string.IsNullOrEmpty(profilePic))
+        {
+            <img src="@profilePic"
+                 alt="@Model?.Username"
+                 class="profile-avatar shadow-sm object-fit-cover rounded-circle"
+                 style="width: 80px; height: 80px;" />
+        }
+        else
+        {
+            <div class="profile-avatar bg-success text-dark d-flex align-items-center justify-content-center shadow-sm rounded-circle" style="width: 80px; height: 80px;">
+                <span class="fw-bold fs-4">@(Model?.Username != null && Model.Username.Length > 0 ? Model.Username.Substring(0, 1).ToUpper() : "U")</span>
+            </div>
+        }
 
         <div class="flex-grow-1 text-center text-md-start mt-2">
             <div class="d-flex flex-column flex-md-row align-items-center gap-2">
@@ -29,6 +44,16 @@
                 <span><i class="bi bi-mortarboard"></i> Üniversite Öğrencisi</span>
                 <span><i class="bi bi-calendar3"></i> Temmuz 2021 tarihinde katıldı</span>
             </div>
+
+            <!-- 🌟 BİYOGRAFİ ALANI (Temiz Tırnaklı) 🌟 -->
+            @if (!string.IsNullOrWhiteSpace(Model.Bio))
+            {
+                <div class="mt-2 mb-1">
+                    <p class="text-secondary small mb-0 fst-italic">
+                        “@Model.Bio”
+                    </p>
+                </div>
+            }
 
             <div class="d-flex justify-content-center justify-content-md-start gap-4 mt-3 pt-2 border-top border-light">
                 <div>
@@ -48,6 +73,7 @@
                     <span class="text-muted small ms-1">Yorumlar</span>
                 </div>
                 <div>
+                    <!-- Diğer istatistiklerin varsa burası devam eder -->
                     <!-- 🌟 Replik İstatistiği -->
                     <span class="fw-bold text-dark fs-5">@quotesCount</span>
                     <span class="text-muted small ms-1">Replikler</span>
@@ -56,7 +82,9 @@
         </div>
 
         <div class="mt-3 mt-md-2">
-            <button class="btn btn-sm btn-outline-dark rounded-pill px-3"><i class="bi bi-pencil"></i> Düzenle</button>
+            <button type="button" class="btn btn-sm btn-outline-dark rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                <i class="bi bi-pencil"></i> Düzenle
+            </button>
         </div>
     </div>
 
@@ -502,209 +530,295 @@
         </div>
     </div>
 </div>
+<!-- PROFİL DÜZENLE MODAL (İçerik Dışında En Altta) -->
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold" id="editProfileModalLabel">Profili Düzenle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <div class="modal-body p-4">
+                <!-- 1. DEĞİŞİKLİK: enctype="multipart/form-data" eklendi -->
+                <form action="/Profile/UpdateProfile" method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Kullanıcı Adı</label>
+                        <input type="text" class="form-control" name="Username" value="@Model.Username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">E-posta Adresi</label>
+                        <input type="email" class="form-control" name="Email" value="@Model.Email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Biyografi (Bio)</label>
+                        <textarea class="form-control" name="Bio" rows="3" placeholder="Kendinizden bahsedin...">@Model.Bio</textarea>
+                    </div>
 
+                    <!-- 2. DEĞİŞİKLİK: type="text" yerine type="file" yapıldı -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Profil Resmi Seç</label>
+                        <input type="file" class="form-control" name="ProfilePictureFile" accept="image/*">
+                        <div class="form-text small">Yalnızca .jpg, .jpeg veya .png formatında görseller seçiniz.</div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 pt-2">
+                        <button type="button" class="btn btn-light rounded-3" data-bs-dismiss="modal">İptal</button>
+                        <button type="submit" class="btn btn-primary rounded-3 px-4">Kaydet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div></div>
 <!-- ==================== JAVASCRIPT & AJAX ALANI ==================== -->
-<script>
-    // 🌟 Hızlı Giriş Kutusu Açma/Kapatma Tetikleyicisi
-    function toggleQuoteBox() {
-        const placeholder = document.getElementById('quotePlaceholder');
-        const realForm = document.getElementById('realQuoteForm');
-        const textarea = document.getElementById('quoteContent');
+@section Scripts {
+    <script>
+        // 🌟 Hızlı Giriş Kutusu Açma/Kapatma Tetikleyicisi
+        function toggleQuoteBox() {
+            const placeholder = document.getElementById('quotePlaceholder');
+            const realForm = document.getElementById('realQuoteForm');
+            const textarea = document.getElementById('quoteContent');
 
-        if (realForm.classList.contains('d-none')) {
-            placeholder.classList.add('d-none');
-            realForm.classList.remove('d-none');
-            textarea.focus();
-        } else {
-            realForm.classList.add('d-none');
-            placeholder.classList.remove('d-none');
-            document.getElementById('quoteMovieId').value = "";
-            textarea.value = "";
+            if (realForm.classList.contains('d-none')) {
+                placeholder.classList.add('d-none');
+                realForm.classList.remove('d-none');
+                textarea.focus();
+            } else {
+                realForm.classList.add('d-none');
+                placeholder.classList.remove('d-none');
+                document.getElementById('quoteMovieId').value = "";
+                textarea.value = "";
+            }
         }
-    }
 
-    function openWatchedModal(movieId, movieTitle) {
-        document.getElementById('modalMovieId').value = movieId;
-        document.getElementById('modalMovieTitle').innerText = movieTitle;
-        document.getElementById('modalRating').value = "0";
-        document.getElementById('modalComment').value = "";
+        function openWatchedModal(movieId, movieTitle) {
+            document.getElementById('modalMovieId').value = movieId;
+            document.getElementById('modalMovieTitle').innerText = movieTitle;
+            document.getElementById('modalRating').value = "0";
+            document.getElementById('modalComment').value = "";
 
-        var myModal = new bootstrap.Modal(document.getElementById('watchedStatusModal'));
-        myModal.show();
-    }
+            var myModal = new bootstrap.Modal(document.getElementById('watchedStatusModal'));
+            myModal.show();
+        }
 
-    function submitShelfUpdate() {
-        const movieId = document.getElementById('modalMovieId').value;
-        const rating = document.getElementById('modalRating').value;
-        const comment = document.getElementById('modalComment').value;
+        function submitShelfUpdate() {
+            const movieId = document.getElementById('modalMovieId').value;
+            const rating = document.getElementById('modalRating').value;
+            const comment = document.getElementById('modalComment').value;
 
-        const data = {
-            MovieId: parseInt(movieId),
-            NewStatus: "Watched",
-            Rating: parseInt(rating),
-            Comment: comment
-        };
+            const data = {
+                MovieId: parseInt(movieId),
+                NewStatus: "Watched",
+                Rating: parseInt(rating),
+                Comment: comment
+            };
 
-        fetch('/Profile/UpdateShelfStatus', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        })
-            .then(response => response.json())
-            .then(result => {
-                if (result.success) {
-                    location.reload();
-                } else {
-                    alert(result.message);
-                }
-            });
-    }
-
-    // 🌟 YENİ ENTEGRASYON: Raftan Kaldır AJAX Fonksiyonu (Dinamik Arayüz Güncellemeli)
-    // 🌟 GÜNCEL ENTEGRASYON: Raftan Kaldır AJAX Fonksiyonu (Sayaç ve Kart Güncellemeli)
-    function removeFromShelf(movieId) {
-        if (confirm("Bu filmi izlenecekler listenizden kaldırmak istediğinize emin misiniz?")) {
-
-            fetch(`/Profile/RemoveFromShelf?movieId=${movieId}`, {
+            fetch('/Profile/UpdateShelfStatus', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
             })
                 .then(response => response.json())
                 .then(result => {
                     if (result.success) {
+                        location.reload();
+                    } else {
+                        alert(result.message);
+                    }
+                });
+        }
 
-                        // 1. Adım: İzlenecekler sekmesindeki kartı bul ve animasyonla sil
-                        const movieCard = document.getElementById(`movie-col-${movieId}`);
-                        if (movieCard) {
-                            movieCard.style.transition = "all 0.4s ease";
-                            movieCard.style.opacity = "0";
-                            movieCard.style.transform = "scale(0.8)";
-                            setTimeout(() => { movieCard.remove(); }, 400);
-                        }
+        // 🌟 YENİ ENTEGRASYON: Raftan Kaldır AJAX Fonksiyonu (Dinamik Arayüz Güncellemeli)
+        // 🌟 GÜNCEL ENTEGRASYON: Raftan Kaldır AJAX Fonksiyonu (Sayaç ve Kart Güncellemeli)
+        function removeFromShelf(movieId) {
+            if (confirm("Bu filmi izlenecekler listenizden kaldırmak istediğinize emin misiniz?")) {
 
-                        // 2. Adım: Tüm Filmlerim sekmesindeki kartı da bulup uçurur
-                        const allMoviesCard = document.querySelector(`.movie-item-${movieId}`);
-                        if (allMoviesCard) {
-                            allMoviesCard.style.transition = "all 0.4s ease";
-                            allMoviesCard.style.opacity = "0";
-                            allMoviesCard.style.transform = "scale(0.8)";
-                            setTimeout(() => { allMoviesCard.remove(); }, 400);
-                        }
-                        //değişiklik yaptım
-                        // 3. Adım: Sayaçları dinamik olarak düşürme
-                        setTimeout(() => {
-                            // A) İzlenecekler Sayaçlarını Güncelle
-                            const badgeCount = document.getElementById('watchlist-count-badge');
-                            const tabCount = document.getElementById('watchlist-tab-count');
+                fetch(`/Profile/RemoveFromShelf?movieId=${movieId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
 
-                            if (badgeCount) {
-                                let currentCount = parseInt(badgeCount.innerText) - 1;
-                                badgeCount.innerText = currentCount >= 0 ? currentCount : 0;
-                                if (tabCount) tabCount.innerText = currentCount >= 0 ? currentCount : 0;
+                            // 1. Adım: İzlenecekler sekmesindeki kartı bul ve animasyonla sil
+                            const movieCard = document.getElementById(`movie-col-${movieId}`);
+                            if (movieCard) {
+                                movieCard.style.transition = "all 0.4s ease";
+                                movieCard.style.opacity = "0";
+                                movieCard.style.transform = "scale(0.8)";
+                                setTimeout(() => { movieCard.remove(); }, 400);
+                            }
 
-                                // Eğer hiç film kalmadıysa boş liste mesajını göster
-                                if (currentCount === 0) {
-                                    const oldEmptyMsg = document.getElementById('watchlist-empty-message');
-                                    if (oldEmptyMsg) {
-                                        oldEmptyMsg.classList.remove('d-none');
-                                    } else {
-                                        const dynamicEmpty = document.getElementById('watchlist-dynamic-empty');
-                                        if (dynamicEmpty) dynamicEmpty.classList.remove('d-none');
+                            // 2. Adım: Tüm Filmlerim sekmesindeki kartı da bulup uçurur
+                            const allMoviesCard = document.querySelector(`.movie-item-${movieId}`);
+                            if (allMoviesCard) {
+                                allMoviesCard.style.transition = "all 0.4s ease";
+                                allMoviesCard.style.opacity = "0";
+                                allMoviesCard.style.transform = "scale(0.8)";
+                                setTimeout(() => { allMoviesCard.remove(); }, 400);
+                            }
+
+                            // 3. Adım: Sayaçları dinamik olarak düşürme
+                            setTimeout(() => {
+                                // A) İzlenecekler Sayaçlarını Güncelle
+                                const badgeCount = document.getElementById('watchlist-count-badge');
+                                const tabCount = document.getElementById('watchlist-tab-count');
+
+                                if (badgeCount) {
+                                    let currentCount = parseInt(badgeCount.innerText) - 1;
+                                    badgeCount.innerText = currentCount >= 0 ? currentCount : 0;
+                                    if (tabCount) tabCount.innerText = currentCount >= 0 ? currentCount : 0;
+
+                                    // Eğer hiç film kalmadıysa boş liste mesajını göster
+                                    if (currentCount === 0) {
+                                        const oldEmptyMsg = document.getElementById('watchlist-empty-message');
+                                        if (oldEmptyMsg) {
+                                            oldEmptyMsg.classList.remove('d-none');
+                                        } else {
+                                            const dynamicEmpty = document.getElementById('watchlist-dynamic-empty');
+                                            if (dynamicEmpty) dynamicEmpty.classList.remove('d-none');
+                                        }
                                     }
                                 }
-                            }
 
-                            // 🌟 B) YENİ EKLEME: "Tüm Filmlerim" Sekme Başlığındaki Sayacı Güncelle
-                            const allMoviesTab = document.getElementById('allmovies-tab');
-                            if (allMoviesTab) {
-                                // Buton metnini alıyoruz (Örn: "Tüm Filmlerim (15)")
-                                const text = allMoviesTab.innerText;
+                                // 🌟 B) YENİ EKLEME: "Tüm Filmlerim" Sekme Başlığındaki Sayacı Güncelle
+                                const allMoviesTab = document.getElementById('allmovies-tab');
+                                if (allMoviesTab) {
+                                    // Buton metnini alıyoruz (Örn: "Tüm Filmlerim (15)")
+                                    const text = allMoviesTab.innerText;
 
-                                // Parantez içindeki sayıyı Regex ile buluyoruz
-                                const match = text.match(/\((\d+)\)/);
-                                if (match) {
-                                    let totalMoviesCount = parseInt(match[1]) - 1;
-                                    if (totalMoviesCount < 0) totalMoviesCount = 0;
+                                    // Parantez içindeki sayıyı Regex ile buluyoruz
+                                    const match = text.match(/\((\d+)\)/);
+                                    if (match) {
+                                        let totalMoviesCount = parseInt(match[1]) - 1;
+                                        if (totalMoviesCount < 0) totalMoviesCount = 0;
 
-                                    // Yeni metni yazıyoruz (Örn: "Tüm Filmlerim (14)")
-                                    allMoviesTab.innerText = `Tüm Filmlerim (${totalMoviesCount})`;
+                                        // Yeni metni yazıyoruz (Örn: "Tüm Filmlerim (14)")
+                                        allMoviesTab.innerText = `Tüm Filmlerim (${totalMoviesCount})`;
+                                    }
                                 }
-                            }
-                        }, 400);
+                            }, 400);
 
+                        } else {
+                            alert(result.message || "Film kaldırılırken bir hata oluştu.");
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Hata:", err);
+                        alert("İstek gönderilirken sistemsel bir hata oluştu.");
+                    });
+            }
+        }
+
+        // 🌟 Replik Gönderme AJAX Fonksiyonu
+        function submitNewQuote() {
+            const movieId = document.getElementById('quoteMovieId').value;
+            const content = document.getElementById('quoteContent').value;
+
+            if (!movieId || !content.trim()) {
+                alert("Lütfen bir film seçin ve replik metnini doldurun!");
+                return;
+            }
+
+            const data = {
+                MovieId: parseInt(movieId),
+                Content: content
+            };
+
+            fetch('/Profile/AddQuote', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        location.reload();
                     } else {
-                        alert(result.message || "Film kaldırılırken bir hata oluştu.");
+                        alert(result.message);
                     }
                 })
-                .catch(err => {
-                    console.error("Hata:", err);
-                    alert("İstek gönderilirken sistemsel bir hata oluştu.");
-                });
-        }
-    }
-    // 🌟 Replik Gönderme AJAX Fonksiyonu
-    function submitNewQuote() {
-        const movieId = document.getElementById('quoteMovieId').value;
-        const content = document.getElementById('quoteContent').value;
-
-        if (!movieId || !content.trim()) {
-            alert("Lütfen bir film seçin ve replik metnini doldurun!");
-            return;
+                .catch(err => console.error("Hata:", err));
         }
 
-        const data = {
-            MovieId: parseInt(movieId),
-            Content: content
-        };
+        // 🌟 DOM Yüklendiğinde Çalışacak Kodlar (Film Arama ve Profil Düzenleme Formu)
+        document.addEventListener("DOMContentLoaded", function () {
 
-        fetch('/Profile/AddQuote', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        })
-            .then(response => response.json())
-            .then(result => {
-                if (result.success) {
-                    location.reload();
-                } else {
-                    alert(result.message);
-                }
-            })
-            .catch(err => console.error("Hata:", err));
-    }
-
-    document.addEventListener("DOMContentLoaded", function () {
-        const searchInput = document.getElementById("movie-search-input");
-
-        if (searchInput) {
-            searchInput.addEventListener("input", function (e) {
-                // Arama metnini al ve Türkçe karakterleri standardize et
-                let searchTerm = e.target.value.toLowerCase().trim()
-                    .replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u')
-                    .replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c');
-
-                // "İzlediklerim" içindeki tüm film sütunlarını yakala
-                const movieCards = document.querySelectorAll("#watched-content .watched-movie-card");
-
-                movieCards.forEach(function (card) {
-                    // Kartın içindeki film adını al
-                    let titleElement = card.querySelector("h6");
-                    let title = titleElement ? titleElement.innerText.toLowerCase() : "";
-
-                    title = title.replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u')
+            // 1. Film Arama İşlevi
+            const searchInput = document.getElementById("movie-search-input");
+            if (searchInput) {
+                searchInput.addEventListener("input", function (e) {
+                    let searchTerm = e.target.value.toLowerCase().trim()
+                        .replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u')
                         .replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c');
 
-                    // Eşleşme kontrolü
-                    if (title.includes(searchTerm)) {
-                        card.style.display = ""; // Göster
-                    } else {
-                        card.style.display = "none"; // Gizle
-                    }
+                    const movieCards = document.querySelectorAll("#watched-content .watched-movie-card");
+
+                    movieCards.forEach(function (card) {
+                        let titleElement = card.querySelector("h6");
+                        let title = titleElement ? titleElement.innerText.toLowerCase() : "";
+
+                        title = title.replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u')
+                            .replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c');
+
+                        if (title.includes(searchTerm)) {
+                            card.style.display = "";
+                        } else {
+                            card.style.display = "none";
+                        }
+                    });
                 });
-            });
-        }
-    });
-</script>
+            }
+
+            // 2. Profil Düzenleme Formu Gönderimi (AJAX)
+            const editForm = document.getElementById("editProfileForm");
+            if (editForm) {
+                editForm.addEventListener("submit", function (e) {
+                    e.preventDefault();
+
+                    const username = this.querySelector('[name="Username"]')?.value || "";
+                    const email = this.querySelector('[name="Email"]')?.value || "";
+                    const bioElement = document.getElementById('editBio') || this.querySelector('[name="Bio"]');
+                    const bio = bioElement ? bioElement.value : "";
+                    const profilePicture = this.querySelector('[name="ProfilePicture"]')?.value || "";
+
+                    const params = new URLSearchParams();
+                    params.append('Username', username);
+                    params.append('Email', email);
+                    params.append('Bio', bio);
+                    params.append('ProfilePicture', profilePicture);
+
+                    fetch('/Profile/UpdateProfile', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: params
+                    })
+                        .then(async response => {
+                            const data = await response.json();
+
+                            if (data.success) {
+                                const modalElement = document.getElementById('editProfileModal');
+                                if (modalElement) {
+                                    const modal = bootstrap.Modal.getInstance(modalElement);
+                                    if (modal) modal.hide();
+                                }
+                                location.reload(); // Başarılı olunca sayfayı yeniler
+                            } else {
+                                alert("Hata: " + data.message);
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Hata:", error);
+                            alert("Güncelleme sırasında bir hata oluştu.");
+                        });
+                });
+            }
+        });
+    </script>
+}
 
 <style>
     /* Hızlı Giriş Kutusu Sınıfları */

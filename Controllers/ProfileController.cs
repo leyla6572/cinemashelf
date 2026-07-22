@@ -17,7 +17,7 @@ namespace CinemaShelf.Controllers
             _context = context;
         }
 
-       
+
         [Authorize]
         public async Task<IActionResult> Index()
         {
@@ -158,7 +158,8 @@ namespace CinemaShelf.Controllers
             // 🌟 YILLARA GÖRE İZLEME İSTATİSTİKLERİ (Gerçek Süreyle Birlikte)
             ViewBag.YearlyStats = watchedMovies
                 .GroupBy(um => um.AddedDate.Year)
-                .Select(g => new {
+                .Select(g => new
+                {
                     Year = g.Key,
                     MovieCount = g.Count(),
                     TotalMinutes = totalRuntime // API'den gelen gerçek toplam süreleri yazdırıyoruz
@@ -419,7 +420,89 @@ namespace CinemaShelf.Controllers
             // İşlem bittikten sonra gelinen profile geri dön
             return RedirectToAction("Profile", new { id = targetUserId });
         }
+
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateProfile(string Username, string Email, string Bio, IFormFile? ProfilePictureFile)
+        {
+            try
+            {
+                int? userId = null;
+
+                try
+                {
+                    userId = HttpContext.Session.GetInt32("UserId");
+                }
+                catch
+                {
+                    // Session kapalıysa düşmesin
+                }
+
+                AppUser? user = null;
+
+                if (userId.HasValue)
+                {
+                    user = _context.AppUsers.FirstOrDefault(u => u.Id == userId.Value);
+                }
+
+                if (user == null && !string.IsNullOrEmpty(Email))
+                {
+                    user = _context.AppUsers.FirstOrDefault(u => u.Email == Email);
+                }
+
+                if (user == null)
+                {
+                    user = _context.AppUsers.FirstOrDefault();
+                }
+
+                if (user != null)
+                {
+                    user.Username = Username;
+                    user.Email = Email;
+                    user.Bio = Bio ?? "";
+
+                    // 🌟 RESİM YÜKLEME İŞLEMİ 🌟
+                    if (ProfilePictureFile != null && ProfilePictureFile.Length > 0)
+                    {
+                        // 1. Dosya için benzersiz bir isim oluştur (Örn: a1b2c3d4_profil.jpg)
+                        string extension = Path.GetExtension(ProfilePictureFile.FileName);
+                        string newFileName = Guid.NewGuid().ToString() + extension;
+
+                        // 2. Projenin wwwroot/uploads yolunu belirle
+                        string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+
+                        // Klasör yoksa oluştur
+                        if (!Directory.Exists(uploadsFolder))
+                        {
+                            Directory.CreateDirectory(uploadsFolder);
+                        }
+
+                        string filePath = Path.Combine(uploadsFolder, newFileName);
+
+                        // 3. Dosyayı sunucuya kaydet
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await ProfilePictureFile.CopyToAsync(stream);
+                        }
+
+                        // 4. Veritabanındaki ProfilePicture sütununa erişim yolunu yaz
+                        user.ProfilePicture = "/uploads/" + newFileName;
+                    }
+
+                    _context.Entry(user).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                    _context.SaveChanges();
+                }
+
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                return Content("Hata oluştu: " + ex.Message);
+            }
+        }
     }
+
+
 
 
 

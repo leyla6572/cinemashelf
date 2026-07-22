@@ -24,6 +24,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.LoginPath = "/Account/Login"; // Giriþ yapmamýþ biri yetkili sayfaya girerse buraya atar
         options.ExpireTimeSpan = TimeSpan.FromDays(7); // 7 gün boyunca beni hatýrla
     });
+builder.Services.AddSession();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -44,5 +45,5 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-
+app.UseSession();
 app.Run();

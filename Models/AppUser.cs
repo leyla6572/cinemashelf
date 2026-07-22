@@ -34,6 +34,8 @@ namespace CinemaShelf.Models
         // 🌟 TAKİPLEŞME SİSTEMİ NAVIGASYON ÖZELLİKLERİ
         public ICollection<Follow> Followers { get; set; } = new List<Follow>(); // Beni takip edenler
         public ICollection<Follow> Followings { get; set; } = new List<Follow>(); // Benim takip ettiklerim
+
+
     }
 
 }
