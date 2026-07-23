@@ -21,6 +21,7 @@ namespace CinemaShelf.Controllers
         [Authorize]
         public async Task<IActionResult> Index()
         {
+
             // 1. Giriş yapan kullanıcının ID'sini cookielerden çekiyoruz
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(userIdString, out int userId))
@@ -167,6 +168,47 @@ namespace CinemaShelf.Controllers
                 .OrderByDescending(g => g.Year)
                 .ToList();
 
+            // 🌟 DİNAMİK ROZET / UNVAN BELİRLEME MANTIĞI 🌟
+            string topGenre = genreStats.OrderByDescending(x => x.Value).FirstOrDefault().Key;
+            int watchedCount = watchedMovies.Count;
+
+            string userBadge = "🎬 Sinema Sever"; // Varsayılan rozet
+
+            if (watchedCount == 0)
+            {
+                userBadge = "🌱 Yeni Üye";
+            }
+            else if (watchedCount < 5)
+            {
+                userBadge = "🍿 Sinema Çaylağı";
+            }
+            else if (topGenre == "Bilim-Kurgu")
+            {
+                userBadge = "🚀 Bilim Kurgu Aşığı";
+            }
+            else if (topGenre == "Aksiyon")
+            {
+                userBadge = "💥 Macera Tutkunu";
+            }
+            else if (topGenre == "Komedi")
+            {
+                userBadge = "🎭 Neşeli İzleyici";
+            }
+            else if (topGenre == "Dram")
+            {
+                userBadge = "📜 Derin Sinefil";
+            }
+            else if (topGenre == "Animasyon & Anime")
+            {
+                userBadge = "🎨 Çizgi Diyarı Sakini";
+            }
+            else if (watchedCount >= 50)
+            {
+                userBadge = "👑 Sinema Gurmesi";
+            }
+
+            // Rozeti View sayfasına taşıyoruz
+            ViewBag.UserBadge = userBadge;
             return View(user);
         }
         // ==================== KİŞİSEL RAFA FİLM EKLEME (AJAX METODU) ====================
@@ -380,32 +422,37 @@ namespace CinemaShelf.Controllers
             public int MovieId { get; set; }
             public string Content { get; set; } = string.Empty;
         }
-
-        // GET veya POST: /User/FollowUser
+        [HttpPost]
         public async Task<IActionResult> FollowUser(int targetUserId)
         {
-            // 1. Oturum açmış olan mevcut kullanıcının ID'sini almalısın. 
-            // Projende Session mı kullanıyorsun yoksa Cookie/Identity mi? 
-            // Şimdilik örnek olması için "currentUserId" değişkeni olarak tanımlıyorum:
+            // 1. Session'dan giriş yapan kullanıcının ID'sini alıyoruz
             int currentUserId = int.Parse(HttpContext.Session.GetString("UserId") ?? "0");
 
-            if (currentUserId == 0 || currentUserId == targetUserId)
+            if (currentUserId == 0)
             {
-                return RedirectToAction("Index", "Home"); // Geçersiz işlem durumunda ana sayfaya at
+                return Json(new { success = false, message = "Lütfen önce giriş yapın." });
             }
 
-            // Daha önce takip etmiş mi kontrol edelim
+            if (currentUserId == targetUserId)
+            {
+                return Json(new { success = false, message = "Kendinizi takip edemezsiniz." });
+            }
+
+            // 2. Takip durumunu kontrol et
             var existingFollow = await _context.Follows
                 .FirstOrDefaultAsync(f => f.FollowerId == currentUserId && f.FollowingId == targetUserId);
 
+            bool isFollowing = false;
+
             if (existingFollow != null)
             {
-                // Eğer zaten takip ediyorsa: Takipten ÇIK
+                // Zaten takip ediyorsa -> Takipten Çık
                 _context.Follows.Remove(existingFollow);
+                isFollowing = false;
             }
             else
             {
-                // Eğer takip etmiyorsa: TAKİP ET
+                // Takip etmiyorsa -> Takip Et
                 var newFollow = new Follow
                 {
                     FollowerId = currentUserId,
@@ -413,14 +460,22 @@ namespace CinemaShelf.Controllers
                     FollowedDate = DateTime.Now
                 };
                 await _context.Follows.AddAsync(newFollow);
+                isFollowing = true;
             }
 
             await _context.SaveChangesAsync();
 
-            // İşlem bittikten sonra gelinen profile geri dön
-            return RedirectToAction("Profile", new { id = targetUserId });
-        }
+            // 3. Güncel Takipçi Sayısını Hesapla
+            int updatedFollowerCount = await _context.Follows.CountAsync(f => f.FollowingId == targetUserId);
 
+            // Sayfa yenilemek yerine sonucu JSON olarak döndürüyoruz (AJAX İçin)
+            return Json(new
+            {
+                success = true,
+                isFollowing = isFollowing,
+                followerCount = updatedFollowerCount
+            });
+        }
 
         [HttpPost]
         public async Task<IActionResult> UpdateProfile(string Username, string Email, string Bio, IFormFile? ProfilePictureFile)

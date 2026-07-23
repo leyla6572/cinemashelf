@@ -37,7 +37,10 @@
         <div class="flex-grow-1 text-center text-md-start mt-2">
             <div class="d-flex flex-column flex-md-row align-items-center gap-2">
                 <h2 class="fw-bold text-dark mb-0">@Model.Username</h2>
-                <span class="badge bg-light text-muted border px-2 py-1 small fw-normal">Sinema Sever</span>
+                <!-- DİNAMİK ROZET -->
+                <span class="badge bg-light text-muted border px-2 py-1 small fw-normal">
+                    @ViewBag.UserBadge
+                </span>
             </div>
 
             <div class="profile-meta d-flex flex-wrap justify-content-center justify-content-md-start gap-3 mt-3 text-muted small">
@@ -81,9 +84,16 @@
             </div>
         </div>
 
-        <div class="mt-3 mt-md-2">
+        <!-- PAYLAŞ VE DÜZENLE BUTONLARI -->
+        <div class="mt-3 mt-md-2 d-flex align-items-center gap-2">
+            <!-- Paylaş Butonu -->
+            <button type="button" class="btn btn-sm btn-outline-dark rounded-pill px-3" onclick="shareProfile()">
+                <i class="bi bi-share me-1"></i> Paylaş
+            </button>
+
+            <!-- Profil Düzenle Butonu -->
             <button type="button" class="btn btn-sm btn-outline-dark rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#editProfileModal">
-                <i class="bi bi-pencil"></i> Düzenle
+                <i class="bi bi-pencil me-1"></i> Düzenle
             </button>
         </div>
     </div>
@@ -262,7 +272,7 @@
 
                         <div class="card shadow-sm mb-4 border border-secondary-subtle" style="border-width: 1.5px !important;">
                             <div class="card-body">
-                                <h5 class="card-title fw-bold text-dark mb-3" style="font-size: 1.1rem;">Türlerine Göre İzledikleri</h5>
+                                <h5 class="card-title fw-bold text-dark mb-3" style="font-size: 1.1rem;">Yönetmene Göre İzledikleri</h5>
                                 <ol class="list-group list-group-numbered list-group-flush" style="padding-left: 0;">
                                     @if (ViewBag.DirectorStats != null && ((List<KeyValuePair<string, int>>)ViewBag.DirectorStats).Any())
                                     {
@@ -423,7 +433,6 @@
                         <div class="bg-success text-dark d-flex align-items-center justify-content-center shadow-sm rounded-circle fw-bold flex-shrink-0" style="width: 42px; height: 42px; font-size: 1.1rem;">
                             @Model.Username?.Substring(0, 1).ToUpper()
                         </div>
-
                         <div class="flex-grow-1">
                             <div class="w-100 placeholder-box bg-light border rounded-pill px-3 py-2 text-muted small cursor-pointer border-light-subtle shadow-inner"
                                  onclick="toggleQuoteBox()" id="quotePlaceholder">
@@ -924,6 +933,70 @@
         document.addEventListener("DOMContentLoaded", function () {
             validateProfileForm();
         });
+
+        function shareProfile() {
+            const profileUrl = window.location.href;
+            const profileTitle = document.title || "Profil";
+
+            // Mobil cihazlar için yerel paylaşım menüsü
+            if (navigator.share) {
+                navigator.share({
+                    title: profileTitle,
+                    text: 'Sinema profilime göz atın!',
+                    url: profileUrl
+                }).catch((err) => console.log('Paylaşım iptal edildi veya hata:', err));
+            }
+            // Masaüstü cihazlar için panoya kopyalama
+            else if (navigator.clipboard) {
+                navigator.clipboard.writeText(profileUrl).then(() => {
+                    alert('Profil bağlantısı panoya kopyalandı! ✨');
+                }).catch(err => {
+                    console.error('Kopyalama başarısız:', err);
+                });
+            }
+            // Eski tarayıcı desteği
+            else {
+                const dummyInput = document.createElement('input');
+                document.body.appendChild(dummyInput);
+                dummyInput.value = profileUrl;
+                dummyInput.select();
+                document.execCommand('copy');
+                document.body.removeChild(dummyInput);
+                alert('Profil bağlantısı panoya kopyalandı! ✨');
+            }
+        }
+
+        function toggleFollow(targetUserId) {
+            $.ajax({
+                url: '/Profile/FollowUser', // Metodunun adı FollowUser olduğu için burayı böyle güncelledik
+                type: 'POST',
+                data: { targetUserId: targetUserId },
+                success: function (response) {
+                    if (response.success) {
+                        const followBtn = $('#followBtn');
+
+                        if (response.isFollowing) {
+                            // Takip edildi durumuna geç
+                            followBtn.removeClass('btn-primary').addClass('btn-outline-secondary');
+                            followBtn.html('Takipten Çık');
+                        } else {
+                            // Takipten çıkıldı durumuna geç
+                            followBtn.removeClass('btn-outline-secondary').addClass('btn-primary');
+                            followBtn.html('Takip Et');
+                        }
+
+                        // Profildeki Takipçi Sayısını Anlık Güncelle
+                        $('#followerCountDisplay').text(response.followerCount);
+
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function () {
+                    alert('İşlem gerçekleştirilirken bir hata oluştu.');
+                }
+            });
+        }
     </script>
 }
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CinemaShelf.Models
 {
@@ -35,7 +36,7 @@ namespace CinemaShelf.Models
         public ICollection<Follow> Followers { get; set; } = new List<Follow>(); // Beni takip edenler
         public ICollection<Follow> Followings { get; set; } = new List<Follow>(); // Benim takip ettiklerim
 
-
+        
     }
 
 }
